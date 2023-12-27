@@ -320,23 +320,23 @@
 	  return;							\
 	}								\
 	array->array = (ArrayList_##type*) realloc(array->array,(array->capacity + 1) * sizeof(ArrayList_##type)); \
-	ArrayList_##type new = init_array_##type(data->occupied); \
+	ArrayList_##type new = init_array_##type(data->occupied);	\
 	new.occupied = data->occupied;					\
-	memcpy(new.array, data->array, sizeof(type)*data->occupied ); \
+	memcpy(new.array, data->array, sizeof(type)*data->occupied );	\
 	array->array[array->occupied] = new;				\
 	array->occupied += 1;						\
 	array->capacity += 1;						\
 	return;								\
       }									\
       if (array->occupied < array->capacity) {				\
-	ArrayList_##type new = init_array_##type(data->occupied); \
+	ArrayList_##type new = init_array_##type(data->occupied);	\
 	new.occupied = data->occupied;					\
 	memcpy(new.array, data->array, sizeof(data->array[0])*data->occupied ); \
 	array->array[array->occupied] = new;				\
 	array->occupied += 1;						\
 	return;								\
       }									\
-      ArrayList_##type* anot = (ArrayList_##type*) malloc(sizeof(ArrayList_##type) * (array->capacity+1));	\
+      ArrayList_##type* anot = (ArrayList_##type*) malloc(sizeof(ArrayList_##type) * (array->capacity+1)); \
       array->array = memcpy(anot, array->array, sizeof(ArrayList_##type) * array->capacity); \
       ArrayList_##type new = init_array_##type(data->occupied);		\
       new.occupied = data->occupied;					\
@@ -376,29 +376,103 @@
     }								\
     type* tmp = realloc(st->array, sizeof(type)*(st->size+1));	\
     st->array = tmp;						\
-    st->array[st->occupied] = data;					\
+    st->array[st->occupied] = data;				\
     st->occupied+=1;						\
     st->size+=1;						\
-  }									\
-  type Queue_##type##_pop(Queue_##type* st)				\
-  {									\
-    type tmp = st->array[0];						\
-    type* new = (type*)malloc(sizeof(type)*(st->size-1));		\
-    memcpy(new, st->array+1, sizeof(type)*(st->size-1));		\
-    free(st->array);							\
-    st->array = new;							\
-    st->occupied-=1;							\
-    st->size-=1;							\
-    return tmp;								\
-  }									\
-  bool Queue_##type##_empty(Queue_##type* st)				\
-  {									\
-    if (st->size == 0) {						\
-      return true;							\
-    }									\
-    return false;							\
-  }									\
+  }								\
+  type Queue_##type##_pop(Queue_##type* st)			\
+  {								\
+    type tmp = st->array[0];					\
+    type* new = (type*)malloc(sizeof(type)*(st->size-1));	\
+    memcpy(new, st->array+1, sizeof(type)*(st->size-1));	\
+    free(st->array);						\
+    st->array = new;						\
+    st->occupied-=1;						\
+    st->size-=1;						\
+    return tmp;							\
+  }								\
+  bool Queue_##type##_empty(Queue_##type* st)			\
+  {								\
+    if (st->size == 0) {					\
+      return true;						\
+    }								\
+    return false;						\
+  }								\
 
+#define stack(type)						\
+  typedef struct Stack_##type Stack_##type;			\
+  struct Stack_##type {						\
+    type* array;						\
+    size_t size;						\
+    size_t occupied;						\
+  };								\
+  Stack_##type init_stack_##type()				\
+  {								\
+    return (Stack_##type) {					\
+      .array = NULL,						\
+      .size = 0,						\
+      .occupied = 0,						\
+    };								\
+  }								\
+  void push_stack_##type(Stack_##type* st, type data)		\
+  {								\
+    if (st->size == 0){						\
+      type* arr = (type*) malloc(sizeof(type)*1);		\
+      st->array = arr;						\
+      st->array[st->occupied] = data;				\
+      st->size += 1;						\
+      st->occupied += 1;					\
+      return;							\
+    }								\
+    type* tmp = realloc(st->array, sizeof(type)*(st->size+1));	\
+    st->array = tmp;						\
+    st->array[st->occupied] = data;				\
+    st->occupied+=1;						\
+    st->size+=1;						\
+  }								\
+  type pop_stack_##type(Stack_##type* st)			\
+  {								\
+    type tmp = st->array[(st->occupied)-1];			\
+    st->occupied-=1;						\
+    st->size-=1;						\
+    return tmp;							\
+  }								\
+  void deinit_stack_##type(Stack_##type* st)			\
+  {								\
+    if (st) free(st);						\
+    else printf("Invalid pointer");				\
+  }								\
+  bool empty_stack_##type(Stack_##type* st)			\
+  {								\
+    if (st->size == 0) {					\
+      return true;						\
+    }								\
+    return false;						\
+  }								\
+
+#define hashmap(type)                                           \ 
+typedef struct HashMap_##type HashMap_##type;			\
+typedef struct Hashmap_element_##type Hashmap_element_##type;	\
+struct Hashmap_element_##type {					\
+  char* key;							\
+  type data;							\
+  size_t size;							\
+  Hashmap_element_##type* next;					\
+};								\
+struct HashMap_##type {						\
+  size_t capacity;						\
+  size_t occupied;						\
+  Hashmap_element_##type* elements;				\
+};								\
+HashMap_##type* init_hashmap_##type(size_t size)		\
+{								\
+  HashMap_##type* map = (HashMap_##type*)malloc(sizeof(HashMap_##type)); \
+  if (!map) perror("Error");						\
+  map->elements =  (Hashmap_element_##type*) calloc(sizeof(Hashmap_element_##type)* size);	\
+  if (!map->elements) perror("Error");					\
+  map->capactiy = size;							\
+  map->occupied = 0;							\
+  return map;								\
+}									\
 
 #endif
-// TODO on line 105: Design Decision, Bitacora TODO (1)
