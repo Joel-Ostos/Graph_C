@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-// TODO ***: Stack y Queue
+// TODO ***: HashMap
 // TODO **: Árboles rojinegros
 
 /*
@@ -474,5 +474,9 @@ HashMap_##type* init_hashmap_##type(size_t size)		\
   map->occupied = 0;							\
   return map;								\
 }									\
+void deinit_hashmap_##type(HashMap_##type* map) \
+{\
+  free(map);
+}\
 
 #endif
