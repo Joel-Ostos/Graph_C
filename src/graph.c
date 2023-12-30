@@ -1,4 +1,5 @@
 #include "graph.h"
+#include <string.h> 
 #define INITIAL_SIZE 123
 #define RESIZE_FACTOR 2
 
@@ -38,10 +39,19 @@ static uint32_t hash(unsigned char* str, size_t size)
     return hash;
 }
 
-static void resize_hashmap(Hashmap* map);
+static void resize_hashmap(Hashmap* map)
+{
+  map->elements = (element*) realloc(map->elements, sizeof(element)* (map->capacity*RESIZE_FACTOR));
+  map->capacity *= RESIZE_FACTOR;
+  for (element* i = map->head; i->key != NULL; i = i->next) {
+    put_hashmap_element(map, i->key, i->size);
+    i->key = NULL;
+  }
+}
 
 static void put_hashmap_element(Hashmap* map, char* key, size_t size)
 {
+  if (map->capacity == map->occupied) resize_hashmap(map);
   uint32_t index = hash((unsigned char*)key, size) % map->capacity;
   Hashmap* n = init_hashmap(false, 0);
   Vertex v = {.label = key, .neighbours = n, .degree = 0, .n_edges = 0, .n_neighbours = 0};
@@ -68,6 +78,35 @@ static void put_hashmap_element(Hashmap* map, char* key, size_t size)
 static Vertex get_hashmap_element(Hashmap* map, char* key, size_t size)
 {
   uint32_t index = hash((unsigned char*)key, size) % map->capacity;
-  return map->elements[index].value;
+  if (strcmp(map->elements[index].key, key) == 0) {
+    return map->elements[index].value;
+  }
+  for (element* i = &map->elements[index]; i->key != NULL; i = i->next) {
+    if (strcmp(i->key,key) == 0) {
+      return i->value;
+    }
+  }
+  printf("\nNot found\n");
 }
-static void delete_hashmap_element(Hashmap* map);
+
+static void delete_hashmap_element(Hashmap* map, char* key, size_t size)
+{
+  uint32_t index = hash((unsigned char*)key, size) % map->capacity;
+  if (strcmp(map->elements[index].key, key) == 0) {
+    map->elements[index].key = NULL;
+    return;
+  }
+  for (element* i = &map->elements[index]; i->key != NULL; i = i->next) {
+    if (strcmp(i->key,key) == 0) {
+      i->key = NULL;
+      return;
+    }
+  }
+}
+
+static bool deinit_hashmap(Hashmap* map)
+{
+  free(map->elements);
+  free(map);
+  return true;
+}
