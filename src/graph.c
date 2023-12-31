@@ -83,8 +83,10 @@ static void put_hashmap_element(Hashmap* map, char* key, size_t size)
 static element* get_hashmap_element(Hashmap* map, char* key, size_t size)
 {
   uint32_t index = hash((unsigned char*)key, size) % map->capacity;
-  if (strcmp(map->elements[index].key, key) == 0) {
-    return &map->elements[index];
+  if (map->elements[index].key != NULL) {
+    if (strcmp(map->elements[index].key, key) == 0) {
+      return &map->elements[index];
+    }
   }
   for (element* i = &map->elements[index]; i->key != NULL; i = i->next) {
     if (strcmp(i->key,key) == 0) {
@@ -146,10 +148,15 @@ Vertex add_vertex(Graph* g, char* label, size_t label_size)
 
 Vertex add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
 {
-  Vertex vec = get_hashmap_element(g->adj_matrix, src, size_src)->value;
-  put_hashmap_element(vec.neighbours, get_hashmap_element(g->adj_matrix, dst, size_dst)->key, size_dst);
-  vec.degree += 1;
-  return vec;
+
+  element* el = get_hashmap_element(g->adj_matrix, src, size_src);
+  element* el_2 = get_hashmap_element(g->adj_matrix, dst, size_dst);
+  if (el != NULL && el_2 != NULL) {
+    Vertex vec = el->value;
+    put_hashmap_element(vec.neighbours, el_2->key, el_2->size);
+    vec.degree += 1;
+    return vec;
+  }
 }
 
 void print_graph(Graph* g) {
