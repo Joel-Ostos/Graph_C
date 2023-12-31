@@ -27,6 +27,7 @@ struct Vertex {
   size_t n_edges;
   size_t n_neighbours;
 };						
+
 struct element {
   char* key;
   size_t size;
@@ -36,7 +37,7 @@ struct element {
 
 
 struct Graph {				
-  Hashmap adj_matrix;				
+  Hashmap* adj_matrix;				
   size_t degree;
   size_t n_edges;
   size_t n_vertex;
@@ -46,13 +47,15 @@ static Hashmap* init_hashmap(bool opt, size_t size);
 static void resize_hashmap(Hashmap* map);
 static uint32_t hash(unsigned char* str, size_t size);
 static void put_hashmap_element(Hashmap* map, char* key, size_t size);
-static Vertex get_hashmap_element(Hashmap* map, char* key, size_t size);
+static element* get_hashmap_element(Hashmap* map, char* key, size_t size);
 static void delete_hashmap_element(Hashmap* map, char* key, size_t size);
-static bool deinit_hashmap(Hashmap* map);
-Graph* init_graph(size_t size);
-Vertex add_vertex(Graph* g, char* label);
-Vertex add_edge(Graph* g, char* src, char* dst);
+void iterate_hashmap(Hashmap* map);
+static void deinit_hashmap(Hashmap* map);
+Graph* init_graph();
+Vertex add_vertex(Graph* g, char* label, size_t size);
+Vertex add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
 void cut_edge(Graph* g, char* src, char* dst);
+void print_graph(Graph* g);
 void dfs(Graph* g, char* src, char* dst);
 void bfs(Graph* g, char* src, char* dst);
 void dijsktra(Graph* g, char* src, char* dst);
