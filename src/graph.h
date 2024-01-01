@@ -8,8 +8,11 @@
 
 typedef struct Graph Graph;	
 typedef struct Vertex Vertex;	
+typedef struct Vertex_ptr Vertex_ptr;	
 typedef struct Hashmap Hashmap;
+typedef struct Hashmap_ptr Hashmap_ptr;
 typedef struct element element;
+typedef struct element_ptr element_ptr;
 
 struct Hashmap {
   size_t capacity;
@@ -22,7 +25,7 @@ struct Hashmap {
 struct Vertex {
   char* label;
   size_t label_size;
-  Hashmap* neighbours;
+  Hashmap_ptr* neighbours;
   size_t degree;
   size_t n_edges;
   size_t n_neighbours;
@@ -35,6 +38,20 @@ struct element {
   element* next;
 };
 
+struct element_ptr {
+  char* key;
+  size_t size;
+  Vertex* value;
+  element_ptr* next;
+};
+
+struct Hashmap_ptr {
+  size_t capacity;
+  size_t occupied;
+  element_ptr* elements;
+  element_ptr* head;
+  element_ptr* tail;
+};
 
 struct Graph {				
   Hashmap* adj_matrix;				
@@ -49,11 +66,20 @@ static uint32_t hash(unsigned char* str, size_t size);
 static void put_hashmap_element(Hashmap* map, char* key, size_t size);
 static element* get_hashmap_element(Hashmap* map, char* key, size_t size);
 static void delete_hashmap_element(Hashmap* map, char* key, size_t size);
-void iterate_hashmap(Hashmap* map);
+static void iterate_hashmap(Hashmap* map);
 static void deinit_hashmap(Hashmap* map);
+
+static Hashmap_ptr* init_hashmap_ptr(bool opt, size_t size);
+static void resize_hashmap_ptr(Hashmap_ptr* map, Hashmap* src);
+static void put_hashmap_element_ptr(Hashmap_ptr* map,const Hashmap* map_src, char* key, size_t size);
+static element_ptr* get_hashmap_element_ptr(Hashmap_ptr* map, char* key, size_t size);
+static void delete_hashmap_element_ptr(Hashmap_ptr* map, char* key, size_t size);
+static void iterate_hashmap_ptr(Hashmap_ptr* map);
+static void deinit_hashmap_ptr(Hashmap_ptr* map);
+
 Graph* init_graph();
 Vertex add_vertex(Graph* g, char* label, size_t size);
-Vertex add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
+Vertex* add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
 void cut_edge(Graph* g, char* src, char* dst);
 void print_graph(Graph* g);
 void dfs(Graph* g, char* src, char* dst);
