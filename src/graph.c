@@ -3,15 +3,14 @@
 #define INITIAL_SIZE 123
 #define RESIZE_FACTOR 2
 
-static Hashmap* init_hashmap (bool opt, size_t size)
+static Hashmap* init_hashmap(bool opt, size_t size)
 {
-  element* el = (element*) calloc(size,sizeof(element));
-  if (!el) {perror("Error creating element array"); return NULL;}
-
   Hashmap* map = (Hashmap*) malloc(sizeof(Hashmap));
   if (!map) {perror("Error creating hashmap"); return NULL;}
 
   if (opt) {
+    element* el = (element*) calloc(size,sizeof(element) * size);
+    if (!el) {perror("Error creating element array"); return NULL;}
     map->capacity = size;
     map->occupied = 0;
     map->elements = el;
@@ -19,6 +18,8 @@ static Hashmap* init_hashmap (bool opt, size_t size)
     map->tail = NULL;
     return map;
   }
+  element* el = (element*) calloc(size,sizeof(element)* INITIAL_SIZE);
+  if (!el) {perror("Error creating element array"); return NULL;}
   map->capacity = INITIAL_SIZE;
   map->occupied = 0;
   map->elements = el;
@@ -27,9 +28,9 @@ static Hashmap* init_hashmap (bool opt, size_t size)
   return map;
 }
 
-static uint32_t hash(unsigned char* str, size_t size)
+static int hash(unsigned char* str, size_t size)
 {
-  uint32_t hash = 5381;
+  int hash = 5381;
   size_t c = 0;
 
   while (c < size) {
@@ -43,7 +44,7 @@ static uint32_t hash(unsigned char* str, size_t size)
 static void resize_hashmap(Hashmap* map)
 {
   if (map->capacity == 0) exit(1);
-  map->elements = (element*) realloc(map->elements, sizeof(element)* (map->capacity*RESIZE_FACTOR));
+  map->elements = (element*) realloc(map->elements, sizeof(element) * (map->capacity*RESIZE_FACTOR));
   map->capacity *= RESIZE_FACTOR;
   for (element* i = map->head; i->key != NULL; i = i->next) {
     put_hashmap_element(map, i->key, i->size);
@@ -51,14 +52,14 @@ static void resize_hashmap(Hashmap* map)
   }
 }
 
-static void put_hashmap_element(Hashmap* map, char* key, size_t size)
+static Vertex* put_hashmap_element(Hashmap* map, char* key, size_t size)
 {
   if (map->capacity == map->occupied) resize_hashmap(map);
-  uint32_t index = hash((unsigned char*)key, size) % map->capacity;
+  int index = hash((unsigned char*)key, size) % map->capacity;
   Hashmap_ptr* n = init_hashmap_ptr(false, 0);
   if (map->elements[index].key != NULL) {
     if (strcmp(map->elements[index].key, key) == 0) {
-      return;
+      return NULL;
     }
   }
   Vertex v = {.label = key, .neighbours = n, .degree = 0, .n_edges = 0, .n_neighbours = 0};
@@ -67,9 +68,8 @@ static void put_hashmap_element(Hashmap* map, char* key, size_t size)
     map->elements[index] = el;
     map->tail = &(map->elements[index]);
     map->head = &(map->elements[index]);
-    map->head->next = map->tail;
     map->occupied++;
-    return;
+    return &(map->elements[index].value);
   }
 
   while (map->elements[index].key != NULL) {
@@ -80,21 +80,21 @@ static void put_hashmap_element(Hashmap* map, char* key, size_t size)
     map->tail->next = &map->elements[index];
     map->tail = &map->elements[index];
     map->occupied++;
-    return;
+    return &(map->elements[index].value);
   }
-  printf("Cannot put the element");
-  return;
+  printf("Cannot put the element\n");
+  return NULL;
 }
 
 static element* get_hashmap_element(Hashmap* map, char* key, size_t size)
 {
-  uint32_t index = hash((unsigned char*)key, size) % map->capacity;
+  int index = hash((unsigned char*)key, size) % map->capacity;
   if (map->elements[index].key != NULL) {
     if (strcmp(map->elements[index].key, key) == 0) {
       return &map->elements[index];
     }
   }
-  for (element* i = &map->elements[index]; i->key != NULL; i = i->next) {
+  for (element* i = map->head; i != NULL && i->key != NULL; i = i->next) {
     if (strcmp(i->key,key) == 0) {
       return i;
     }
@@ -135,13 +135,12 @@ static void deinit_hashmap(Hashmap* map)
 // New
 static Hashmap_ptr* init_hashmap_ptr (bool opt, size_t size)
 {
-  element_ptr* el = (element_ptr*) calloc(size, sizeof(element_ptr));
-  if (!el) {perror("Error creating element array"); return NULL;}
-
   Hashmap_ptr* map = (Hashmap_ptr*) malloc(sizeof(Hashmap_ptr));
   if (!map) {perror("Error creating hashmap"); return NULL;}
 
   if (opt) {
+    inner_element* el = (inner_element*) calloc(size, sizeof(inner_element)*size);
+    if (!el) {perror("Error creating element array"); return NULL;}
     map->capacity = size;
     map->occupied = 0;
     map->elements = el;
@@ -149,6 +148,8 @@ static Hashmap_ptr* init_hashmap_ptr (bool opt, size_t size)
     map->tail = NULL;
     return map;
   }
+  inner_element* el = (inner_element*) calloc(size, sizeof(inner_element)*INITIAL_SIZE);
+  if (!el) {perror("Error creating element array"); return NULL;}
   map->capacity = INITIAL_SIZE;
   map->occupied = 0;
   map->elements = el;
@@ -161,33 +162,34 @@ static Hashmap_ptr* init_hashmap_ptr (bool opt, size_t size)
 static void resize_hashmap_ptr(Hashmap_ptr* map, Hashmap* map_src)
 {
   if (map->capacity == 0) exit(1);
-  map->elements = (element_ptr*) realloc(map->elements, sizeof(element_ptr) * (map->capacity * RESIZE_FACTOR));
+  map->elements = (inner_element*) realloc(map->elements, sizeof(inner_element) * (map->capacity * RESIZE_FACTOR));
   map->capacity *= RESIZE_FACTOR;
-  for (element_ptr* i = map->head; i->key != NULL; i = i->next) {
-    put_hashmap_element_ptr(map, map_src, i->key, i->size);
+  for (inner_element* i = map->head; i->key != NULL; i = i->next) {
+    put_hashmap_element_ptr(map_src, i->key, i->key, i->size, i->size);
     i->key = NULL;
   }
 }
 
-static void put_hashmap_element_ptr(Hashmap_ptr* map, const Hashmap* map_src, char* key, size_t size)
+static inner_element* put_hashmap_element_ptr(Hashmap* map_src, char* key, char* dst, size_t size, size_t size_dst)
 {
+  element* el_1 = get_hashmap_element(map_src, key, size);
+  element* el_2 = get_hashmap_element(map_src, dst, size_dst);
+  if (el_1 == NULL || el_2 == NULL) return NULL;
+  Hashmap_ptr* map = el_1->value.neighbours;
   if (map->capacity == map->occupied) resize_hashmap_ptr(map, map_src);
-  uint32_t index = hash((unsigned char*) key, size) % map->capacity;
-  if (map->elements[index].key != NULL) {
-    if (strcmp(map->elements[index].key, key) == 0) {
-      return;
-    }
-  }
-  element* tmp = get_hashmap_element(map_src, key, size);
-  if (!tmp) return;
-  Vertex* v = &(tmp->value);
-  element_ptr el = {.key = key, .size = size, .value = v, .next = NULL};
+  int index = hash((unsigned char*) key, size) % map->capacity;
+  //if (map->elements[index].key != NULL && key != NULL) {
+  //  if (strcmp(map->elements[index].key, key) == 0) {
+  //    return NULL;
+  //  }
+  //}
+  inner_element el = {.key = dst , .size = el_2->size, .value = el_2->key, .next = NULL};
   if (map->occupied == 0) {
     map->elements[index] = el;
     map->tail = &(map->elements[index]);
     map->head = &(map->elements[index]);
     map->occupied++;
-    return;
+    return &(map->elements[index]);
   }
 
   while (map->elements[index].key != NULL) {
@@ -198,13 +200,13 @@ static void put_hashmap_element_ptr(Hashmap_ptr* map, const Hashmap* map_src, ch
     map->tail->next = &map->elements[index];
     map->tail = &map->elements[index];
     map->occupied++;
-    return;
+    return &(map->elements[index]);
   }
-  printf("Cannot put the element");
-  return;
+  printf("Cannot put the element\n");
+  return NULL;
 }
 
-static element_ptr* get_hashmap_element_ptr(Hashmap_ptr* map, char* key, size_t size)
+static inner_element* get_hashmap_element_ptr(Hashmap_ptr* map, char* key, size_t size)
 {
   uint32_t index = hash((unsigned char*)key, size) % map->capacity;
   if (map->elements[index].key != NULL) {
@@ -212,7 +214,7 @@ static element_ptr* get_hashmap_element_ptr(Hashmap_ptr* map, char* key, size_t 
       return &map->elements[index];
     }
   }
-  for (element_ptr* i = &map->elements[index]; i->key != NULL; i = i->next) {
+  for (inner_element* i = &map->elements[index]; i->key != NULL; i = i->next) {
     if (strcmp(i->key,key) == 0) {
       return i;
     }
@@ -228,7 +230,7 @@ static void delete_hashmap_element_ptr(Hashmap_ptr* map, char* key, size_t size)
     map->elements[index].key = NULL;
     return;
   }
-  for (element_ptr* i = &map->elements[index]; i->key != NULL; i = i->next) {
+  for (inner_element* i = &map->elements[index]; i->key != NULL; i = i->next) {
     if (strcmp(i->key,key) == 0) {
       i->key = NULL;
       return;
@@ -237,7 +239,7 @@ static void delete_hashmap_element_ptr(Hashmap_ptr* map, char* key, size_t size)
 }
 void iterate_hashmap_ptr(Hashmap_ptr* map)
 {
-  element_ptr* current = map->head;
+  inner_element* current = map->head;
   while (current != NULL) {
     printf("%s ", current->key);
     current = current->next;
@@ -261,30 +263,31 @@ Graph* init_graph()
   return g;
 }
 
-Vertex add_vertex(Graph* g, char* label, size_t label_size)
+Vertex* add_vertex(Graph* g, char* label, size_t label_size)
 {
-  put_hashmap_element(g->adj_matrix, label, label_size);
-  Vertex el = get_hashmap_element(g->adj_matrix, label, label_size)->value;
-  el.label = label;
-  el.label_size = label_size;
-  return el;
+  char* tmp = (char*)malloc(sizeof(char)*(strlen(label)+1));
+  memcpy(tmp, label, sizeof(char)*label_size);
+  tmp[label_size] = '\0';
+  return put_hashmap_element(g->adj_matrix, tmp, label_size);
 }
 
-Vertex* add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
+void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
 {
-  element* el = get_hashmap_element(g->adj_matrix, src, size_src);
-  if (!el) return NULL;
-  put_hashmap_element_ptr(el->value.neighbours, g->adj_matrix, dst, size_dst);
-  el->value.degree += 1;
-  printf("%s\n", g->adj_matrix->head->key);
-  return &el->value;
+  char* tmp_1 = (char*)malloc(sizeof(char)*(strlen(src)+1));
+  memcpy(tmp_1, src, sizeof(char)*size_src);
+  char* tmp_2 = (char*)malloc(sizeof(char)*(strlen(dst)+1));
+  memcpy(tmp_2, dst, sizeof(char)*size_dst);
+  put_hashmap_element_ptr(g->adj_matrix, tmp_1, tmp_2, size_src, size_dst);
 }
 
 void print_graph(Graph* g) {
   //printf("%s", g->adj_matrix->head->key);
-  //for (element* i = g->adj_matrix->head; i != NULL; i = i->next) {
-  //  printf("%s", i->key);
-  //}
+  for (element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
+      printf("%s \n", i->key);
+      //for (inner_element* j = i->value.neighbours->head; j != NULL && j->key != NULL; j = j->next) {
+      //  printf("%s %s\n", i->key, j->key);
+      //}
+  }
 }
 
 void cut_edge(Graph* g, char* src, char* dst);
