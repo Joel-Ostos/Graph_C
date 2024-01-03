@@ -18,7 +18,7 @@ static Hashmap* init_hashmap(bool opt, size_t size)
     map->tail = NULL;
     return map;
   }
-  element* el = (element*) calloc(size,sizeof(element)* INITIAL_SIZE);
+  element* el = (element*) calloc(INITIAL_SIZE,sizeof(element)* INITIAL_SIZE);
   if (!el) {perror("Error creating element array"); return NULL;}
   map->capacity = INITIAL_SIZE;
   map->occupied = 0;
@@ -63,7 +63,7 @@ static Vertex* put_hashmap_element(Hashmap* map, char* key, size_t size)
     }
   }
   Vertex v = {.label = key, .neighbours = n, .degree = 0, .n_edges = 0, .n_neighbours = 0};
-  element el = {.key = key, .size = size, .value = v, .next = NULL};
+  element el = {.key = key, .size = size, .value = v, .state = true, .next = NULL};
   if (map->occupied == 0) {
     map->elements[index] = el;
     map->tail = &(map->elements[index]);
@@ -265,10 +265,9 @@ Graph* init_graph()
 
 Vertex* add_vertex(Graph* g, char* label, size_t label_size)
 {
-  char* tmp = (char*)malloc(sizeof(char)*(strlen(label)+1));
-  memcpy(tmp, label, sizeof(char)*label_size);
-  tmp[label_size] = '\0';
-  return put_hashmap_element(g->adj_matrix, tmp, label_size);
+  char* tmp = (char*) malloc(sizeof(char)*(strlen(label)+1));
+  memcpy(tmp, label, sizeof(char) * label_size);
+  return put_hashmap_element(g->adj_matrix, label, label_size);
 }
 
 void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
@@ -277,16 +276,21 @@ void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
   memcpy(tmp_1, src, sizeof(char)*size_src);
   char* tmp_2 = (char*)malloc(sizeof(char)*(strlen(dst)+1));
   memcpy(tmp_2, dst, sizeof(char)*size_dst);
-  put_hashmap_element_ptr(g->adj_matrix, tmp_1, tmp_2, size_src, size_dst);
+  put_hashmap_element_ptr(g->adj_matrix, src, dst, size_src, size_dst);
 }
 
 void print_graph(Graph* g) {
-  //printf("%s", g->adj_matrix->head->key);
+  //for (size_t i = 0; i < INITIAL_SIZE; i++) {
+  //  if (g->adj_matrix->elements[i].state){
+  //    printf("%s\n", g->adj_matrix->elements[i].key);
+  //  }
+  //}
   for (element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
-      printf("%s \n", i->key);
-      //for (inner_element* j = i->value.neighbours->head; j != NULL && j->key != NULL; j = j->next) {
-      //  printf("%s %s\n", i->key, j->key);
-      //}
+    printf("{%s", i->key);
+    for (inner_element* j = i->value.neighbours->head; j != NULL && j->key != NULL; j = j->next) {
+      printf(" %s", j->key);
+    }
+    printf("}\n");
   }
 }
 

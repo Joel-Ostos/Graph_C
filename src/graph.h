@@ -43,6 +43,7 @@ struct element {
   size_t size;
   Vertex value;
   element* next;
+  bool state;
 };
 
 struct inner_element {
