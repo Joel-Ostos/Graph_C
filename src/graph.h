@@ -49,7 +49,7 @@ struct element {
 struct inner_element {
   char* key;
   size_t size;
-  char* value;
+  element* value;
   inner_element* next;
 };
 
