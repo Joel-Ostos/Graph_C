@@ -18,7 +18,7 @@ static Hashmap* init_hashmap(bool opt, size_t size)
     map->tail = NULL;
     return map;
   }
-  element* el = (element*) calloc(size,sizeof(element)* INITIAL_SIZE);
+  element* el = (element*) calloc(INITIAL_SIZE,sizeof(element)* INITIAL_SIZE);
   if (!el) {perror("Error creating element array"); return NULL;}
   map->capacity = INITIAL_SIZE;
   map->occupied = 0;
@@ -62,7 +62,7 @@ static Vertex* put_hashmap_element(Hashmap* map, char* key, size_t size)
       return NULL;
     }
   }
-  Vertex v = {.label = key, .neighbours = n, .degree = 0, .n_edges = 0, .n_neighbours = 0};
+  Vertex v = {.label = key, .neighbours = n, .degree = 0, .n_edges = 0};
   element el = {.key = key, .size = size, .value = v, .next = NULL};
   if (map->occupied == 0) {
     map->elements[index] = el;
@@ -148,7 +148,7 @@ static Hashmap_ptr* init_hashmap_ptr (bool opt, size_t size)
     map->tail = NULL;
     return map;
   }
-  inner_element* el = (inner_element*) calloc(size, sizeof(inner_element)*INITIAL_SIZE);
+  inner_element* el = (inner_element*) calloc(INITIAL_SIZE, sizeof(inner_element)*INITIAL_SIZE);
   if (!el) {perror("Error creating element array"); return NULL;}
   map->capacity = INITIAL_SIZE;
   map->occupied = 0;
@@ -183,7 +183,7 @@ static inner_element* put_hashmap_element_ptr(Hashmap* map_src, char* key, char*
   //    return NULL;
   //  }
   //}
-  inner_element el = {.key = dst , .size = el_2->size, .value = el_2->key, .next = NULL};
+  inner_element el = {.key = dst , .size = el_2->size, .value = el_2, .next = NULL};
   if (map->occupied == 0) {
     map->elements[index] = el;
     map->tail = &(map->elements[index]);
@@ -215,7 +215,7 @@ static inner_element* get_hashmap_element_ptr(Hashmap_ptr* map, char* key, size_
     }
   }
   for (inner_element* i = &map->elements[index]; i->key != NULL; i = i->next) {
-    if (strcmp(i->key,key) == 0) {
+    if (strcmp(i->key, key) == 0) {
       return i;
     }
   }
@@ -267,7 +267,6 @@ Vertex* add_vertex(Graph* g, char* label, size_t label_size)
 {
   char* tmp = (char*)malloc(sizeof(char)*(strlen(label)+1));
   memcpy(tmp, label, sizeof(char)*label_size);
-  tmp[label_size] = '\0';
   return put_hashmap_element(g->adj_matrix, tmp, label_size);
 }
 
@@ -283,10 +282,11 @@ void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
 void print_graph(Graph* g) {
   //printf("%s", g->adj_matrix->head->key);
   for (element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
-      printf("%s \n", i->key);
-      //for (inner_element* j = i->value.neighbours->head; j != NULL && j->key != NULL; j = j->next) {
-      //  printf("%s %s\n", i->key, j->key);
-      //}
+      printf("{%s", i->key);
+      for (inner_element* j = i->value.neighbours->head; j != NULL && j->key != NULL; j = j->next) {
+        printf(", %s", j->key);
+      }
+      printf("}\n");
   }
 }
 
