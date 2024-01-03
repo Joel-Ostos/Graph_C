@@ -1,7 +1,8 @@
-#include "graph.h"
+#include "../src/graph.h"
 
 int main(void)
 {
+  printf("akjfa");
   Graph* g = init_graph(false, 0);
 
   add_vertex(g, "11", 2);
