@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "queue.h"
 #include <string.h> 
 #define INITIAL_SIZE 123
 #define RESIZE_FACTOR 2
@@ -63,7 +64,7 @@ static Vertex* put_hashmap_element(Hashmap* map, char* key, size_t size)
     }
   }
   Vertex v = {.label = key, .neighbours = n, .degree = 0, .n_edges = 0};
-  element el = {.key = key, .size = size, .value = v, .next = NULL};
+  element el = {.key = key, .size = size, .value = v, .parent = NULL, .next = NULL};
   if (map->occupied == 0) {
     map->elements[index] = el;
     map->tail = &(map->elements[index]);
@@ -178,11 +179,11 @@ static inner_element* put_hashmap_element_ptr(Hashmap* map_src, char* key, char*
   Hashmap_ptr* map = el_1->value.neighbours;
   if (map->capacity == map->occupied) resize_hashmap_ptr(map, map_src);
   int index = hash((unsigned char*) key, size) % map->capacity;
-  //if (map->elements[index].key != NULL && key != NULL) {
-  //  if (strcmp(map->elements[index].key, key) == 0) {
-  //    return NULL;
-  //  }
-  //}
+  if (map->elements[index].key != NULL && key != NULL) {
+    if (strcmp(map->elements[index].key, key) == 0) {
+      return NULL;
+    }
+  }
   inner_element el = {.key = dst , .size = el_2->size, .value = el_2, .next = NULL};
   if (map->occupied == 0) {
     map->elements[index] = el;
@@ -265,38 +266,65 @@ Graph* init_graph()
 
 Vertex* add_vertex(Graph* g, char* label, size_t label_size)
 {
-  char* tmp = (char*)malloc(sizeof(char)*(strlen(label)+1));
-  memcpy(tmp, label, sizeof(char)*label_size);
-  return put_hashmap_element(g->adj_matrix, tmp, label_size);
+  return put_hashmap_element(g->adj_matrix, label, label_size);
 }
 
 void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
 {
-  char* tmp_1 = (char*)malloc(sizeof(char)*(strlen(src)+1));
-  memcpy(tmp_1, src, sizeof(char)*size_src);
-  char* tmp_2 = (char*)malloc(sizeof(char)*(strlen(dst)+1));
-  memcpy(tmp_2, dst, sizeof(char)*size_dst);
   put_hashmap_element_ptr(g->adj_matrix, src, dst, size_src, size_dst);
 }
 
 void print_graph(Graph* g) {
-  //for (size_t i = 0; i < INITIAL_SIZE; i++) {
-  //  if (g->adj_matrix->elements[i].state){
-  //    printf("%s\n", g->adj_matrix->elements[i].key);
-  //  }
-  //}
   for (element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
-      printf("{%s", i->key);
-      for (inner_element* j = i->value.neighbours->head; j != NULL && j->key != NULL; j = j->next) {
-        printf(", %s", j->key);
-      }
-      printf("}\n");
+    printf("{%s", i->key);
+    for (inner_element* j = i->value.neighbours->head; j != NULL && j->key != NULL; j = j->next) {
+      printf(", %s", j->key);
+    }
+    printf("}\n");
   }
 }
 
 void cut_edge(Graph* g, char* src, char* dst);
+
+traversal* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
+{
+  Queue_element Q = init_Queue_element();
+  element* source = get_hashmap_element(g->adj_matrix, src, size_src);
+  element* dest = get_hashmap_element(g->adj_matrix, dst, size_dst);
+  if (source == NULL || dest == NULL) {
+    return NULL;
+  }
+  Queue_element_push(&Q, source);
+  while (!Queue_element_empty(&Q)) {
+    element* actual =  Queue_element_pop(&Q);
+    for (inner_element* i = actual->value.neighbours->head; i != NULL; i = i->next) {
+      if (i->value->parent!=NULL) continue;
+      Queue_element_push(&Q, i->value);
+      i->value->parent = actual;
+    }
+  }
+  if (dest->parent == NULL) {
+    printf("Path not found");
+    return NULL;
+  };
+  size_t cont = 0;
+  for (element* i = dest; i != NULL; i = i->parent) {
+    cont++;
+  }
+  element** arr = (element**) malloc(sizeof(element*)*cont);
+  traversal* el = (traversal*) malloc(sizeof(traversal));
+  el->elements = arr;
+  el->size = cont;
+  element* i = dest;
+  size_t j = 0;
+  for (; i != NULL && j < cont; i = i->parent, j++) {
+    arr[j] = i;
+  }
+  deinit_Queue_element(&Q);
+  return el;
+}
+
 void dfs(Graph* g, char* src, char* dst);
-void bfs(Graph* g, char* src, char* dst);
 void dijsktra(Graph* g, char* src, char* dst);
 void find_independent_sets(Graph* g, char* src, char* dst);
 void minimun_coloring_vertex(Graph* g, char* src, char* dst);
@@ -304,6 +332,11 @@ void minimun_expansion_tree(Graph* g);
 
 void deinit_graph(Graph* g)
 {
-  deinit_hashmap(g->adj_matrix);
+  for (element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
+    free(i->value.neighbours->elements);
+    free(i->value.neighbours);
+  }
+  free(g->adj_matrix->elements);
+  free(g->adj_matrix);
   free(g);
 }

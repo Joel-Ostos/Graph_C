@@ -12,6 +12,7 @@ typedef struct Hashmap Hashmap;
 typedef struct element element;
 typedef struct Hashmap_ptr Hashmap_ptr;
 typedef struct inner_element inner_element;
+typedef struct traversal traversal;
 
 struct Hashmap {
   size_t capacity;
@@ -43,6 +44,7 @@ struct element {
   size_t size;
   Vertex value;
   element* next;
+  element* parent;
   bool state;
 };
 
@@ -59,6 +61,11 @@ struct Graph {
   size_t n_edges;
   size_t n_vertex;
 };						
+
+struct traversal {
+  size_t size;
+  element** elements;
+};
 
 static Hashmap* init_hashmap(bool opt, size_t size);
 static void resize_hashmap(Hashmap* map);
@@ -83,7 +90,7 @@ void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
 void cut_edge(Graph* g, char* src, char* dst);
 void print_graph(Graph* g);
 void dfs(Graph* g, char* src, char* dst);
-void bfs(Graph* g, char* src, char* dst);
+traversal* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
 void dijsktra(Graph* g, char* src, char* dst);
 void find_independent_sets(Graph* g, char* src, char* dst);
 void minimun_coloring_vertex(Graph* g, char* src, char* dst);
