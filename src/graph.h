@@ -91,6 +91,8 @@ void cut_edge(Graph* g, char* src, char* dst);
 void print_graph(Graph* g);
 void dfs(Graph* g, char* src, char* dst);
 traversal* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
+void print_bfs_result(traversal* result);
+void deinit_bfs_result(traversal* result);
 void dijsktra(Graph* g, char* src, char* dst);
 void find_independent_sets(Graph* g, char* src, char* dst);
 void minimun_coloring_vertex(Graph* g, char* src, char* dst);

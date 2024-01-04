@@ -324,11 +324,24 @@ traversal* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
   return el;
 }
 
+void print_bfs_result(traversal* result)
+{
+  for (int i = (result->size)-1; i >= 0 ; i--) {
+    printf("%s ", result->elements[i]->value.label);
+  }
+}
+
 void dfs(Graph* g, char* src, char* dst);
 void dijsktra(Graph* g, char* src, char* dst);
 void find_independent_sets(Graph* g, char* src, char* dst);
 void minimun_coloring_vertex(Graph* g, char* src, char* dst);
 void minimun_expansion_tree(Graph* g);
+
+void deinit_bfs_result(traversal* result)
+{
+  free(result->elements);
+  free(result);
+}
 
 void deinit_graph(Graph* g)
 {

@@ -59,10 +59,7 @@ int main(void)
 
   print_graph(g);
   traversal* result = bfs(g, "Colombia", strlen("Colombia"), "Brazil", strlen("Brazil"));
-  for (int i = (result->size)-1; i >= 0 ; i--) {
-    printf("%s ", result->elements[i]->value.label);
-  }
-  free(result->elements);
-  free(result);
+  print_bfs_result(result);
+  deinit_bfs_result(result);
   deinit_graph(g);
 }
