@@ -269,7 +269,6 @@ Vertex* add_vertex(Graph* g, char* label, size_t label_size)
 {
   char* la = (char*) malloc(sizeof(char)*(label_size+1));
   memcpy(la, label, (label_size+1));
-  la[label_size] = '\0';
   return put_hashmap_element(g->adj_matrix, la, label_size);
 }
 
