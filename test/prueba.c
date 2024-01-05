@@ -4,43 +4,12 @@
 int main(void)
 {
   Graph* g = init_graph(false, 0);
-  //add_vertex(g, "11", 2);
-  //add_vertex(g, "1", 1);
-  //add_vertex(g, "2", 1);
-  //add_vertex(g, "12", 2);
-  //add_vertex(g, "1", 1);
-  //add_vertex(g, "13", 2);
-  //add_vertex(g, "14", 2);
-  //add_vertex(g, "15", 2);
-  //add_vertex(g, "16", 2);
-  //add_vertex(g, "21", 2);
-  //add_vertex(g, "22", 2);
-  //add_vertex(g, "23", 2);
-  //add_vertex(g, "2", 1);
-  //add_vertex(g, "3", 1);
-  //add_vertex(g, "24", 2);
-  //add_vertex(g, "25", 2);
-  //add_vertex(g, "26", 2);
-
-  //add_edge(g, "1", 1, "2", 1);
-  //add_edge(g, "1", 1, "3", 1);
-  //add_edge(g, "1", 1, "4", 1);
-
-  //add_edge(g, "2", 1, "1", 1);
-  //add_edge(g, "12", 2, "1", 1);
-  //add_edge(g, "12", 2, "13", 2);
-  //add_edge(g, "23", 2, "26", 2);
-  //add_edge(g, "2", 1, "3", 1);
-  //add_edge(g, "2", 1, "4", 1);
-
-  //add_edge(g, "3", 1, "1", 1);
-  //add_edge(g, "3", 1, "2", 1);
-  //add_edge(g, "3", 1, "4", 1);
-
-  //add_edge(g, "4", 1, "1", 1);
-  //add_edge(g, "4", 1, "2", 1);
-  //add_edge(g, "4", 1, "3", 1);
-
+  Graph* p = init_graph(false, 0);
+  for (int i = 0; i < 10; i++) {
+    char str[10];
+    sprintf(str, "%d", i);
+    add_vertex(p, str, strlen(str));
+  }
   add_vertex(g, "Colombia", strlen("Colombia"));
   add_vertex(g, "Venezuela", strlen("Venezuela"));
   add_vertex(g, "Ecuador", strlen("Ecuador"));
@@ -48,7 +17,7 @@ int main(void)
   add_vertex(g, "Brazil", strlen("Brazil"));
 
   add_edge(g, "Colombia", strlen("Colombia"), "Venezuela", strlen("Venezuela"));
-  //add_edge(g, "Colombia", strlen("Colombia"), "Brazil", strlen("Brazil"));
+  add_edge(g, "Colombia", strlen("Colombia"), "Brazil", strlen("Brazil"));
   add_edge(g, "Colombia", strlen("Colombia"), "Peru", strlen("Peru"));
   add_edge(g, "Colombia", strlen("Colombia"), "Ecuador", strlen("Ecuador"));
 
@@ -62,4 +31,6 @@ int main(void)
   print_bfs_result(result);
   deinit_bfs_result(result);
   deinit_graph(g);
+  print_graph(p);
+  deinit_graph(p);
 }

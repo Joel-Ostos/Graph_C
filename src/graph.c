@@ -1,5 +1,6 @@
 #include "graph.h"
 #include "queue.h"
+#include <stdlib.h>
 #include <string.h> 
 #define INITIAL_SIZE 123
 #define RESIZE_FACTOR 2
@@ -266,7 +267,10 @@ Graph* init_graph()
 
 Vertex* add_vertex(Graph* g, char* label, size_t label_size)
 {
-  return put_hashmap_element(g->adj_matrix, label, label_size);
+  char* la = (char*) malloc(sizeof(char)*(label_size+1));
+  memcpy(la, label, (label_size+1));
+  la[label_size] = '\0';
+  return put_hashmap_element(g->adj_matrix, la, label_size);
 }
 
 void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
@@ -348,6 +352,7 @@ void deinit_graph(Graph* g)
   for (element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
     free(i->value.neighbours->elements);
     free(i->value.neighbours);
+    free(i->key);
   }
   free(g->adj_matrix->elements);
   free(g->adj_matrix);
