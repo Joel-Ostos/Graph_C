@@ -4,6 +4,7 @@
 #include <string.h> 
 #define INITIAL_SIZE 123
 #define RESIZE_FACTOR 2
+#define alloc_in_add
 
 static Hashmap* init_hashmap(bool opt, size_t size)
 {
@@ -267,9 +268,12 @@ Graph* init_graph()
 
 Vertex* add_vertex(Graph* g, char* label, size_t label_size)
 {
+#ifdef alloc_in_add
   char* la = (char*) malloc(sizeof(char)*(label_size+1));
   memcpy(la, label, (label_size+1));
   return put_hashmap_element(g->adj_matrix, la, label_size);
+#endif
+  return put_hashmap_element(g->adj_matrix, label, label_size);
 }
 
 void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
@@ -279,11 +283,11 @@ void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
 
 void print_graph(Graph* g) {
   for (element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
-    printf("{%s", i->key);
+    printf("\n{%s", i->key);
     for (inner_element* j = i->value.neighbours->head; j != NULL && j->key != NULL; j = j->next) {
       printf(", %s", j->key);
     }
-    printf("}\n");
+    printf("}");
   }
 }
 
@@ -323,12 +327,16 @@ traversal* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
   for (; i != NULL && j < cont; i = i->parent, j++) {
     arr[j] = i;
   }
+  for (element* b = dest; b != NULL; b = b->next) {
+    b->parent = NULL;
+  }
   deinit_Queue_element(&Q);
   return el;
 }
 
 void print_bfs_result(traversal* result)
 {
+  printf("\n");
   for (int i = (result->size)-1; i >= 0 ; i--) {
     printf("%s ", result->elements[i]->value.label);
   }
@@ -351,7 +359,9 @@ void deinit_graph(Graph* g)
   for (element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
     free(i->value.neighbours->elements);
     free(i->value.neighbours);
+#ifdef alloc_in_add
     free(i->key);
+#endif
   }
   free(g->adj_matrix->elements);
   free(g->adj_matrix);
