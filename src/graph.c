@@ -327,7 +327,7 @@ traversal* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
   for (; i != NULL && j < cont; i = i->parent, j++) {
     arr[j] = i;
   }
-  for (element* b = dest; b != NULL; b = b->next) {
+  for (element* b = g->adj_matrix->head; b != NULL; b = b->next) {
     b->parent = NULL;
   }
   deinit_Queue_element(&Q);
