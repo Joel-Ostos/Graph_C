@@ -95,7 +95,7 @@ void print_bfs_result(traversal* result);
 void deinit_bfs_result(traversal* result);
 void dijsktra(Graph* g, char* src, char* dst);
 void find_independent_sets(Graph* g, char* src, char* dst);
-void minimun_coloring_vertex(Graph* g, char* src, char* dst);
+int chromatic_number(Graph* g);
 void minimun_expansion_tree(Graph* g);
 void deinit_graph(Graph* g);
 

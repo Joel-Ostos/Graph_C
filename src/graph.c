@@ -2,7 +2,7 @@
 #include "queue.h"
 #include <stdlib.h>
 #include <string.h> 
-#define INITIAL_SIZE 123
+#define INITIAL_SIZE 23
 #define RESIZE_FACTOR 2
 #define alloc_in_add
 
@@ -217,7 +217,7 @@ static inner_element* get_hashmap_element_ptr(Hashmap_ptr* map, char* key, size_
       return &map->elements[index];
     }
   }
-  for (inner_element* i = &map->elements[index]; i->key != NULL; i = i->next) {
+  for (inner_element* i = map->head; i != NULL && i->key != NULL; i = i->next) {
     if (strcmp(i->key, key) == 0) {
       return i;
     }
@@ -342,10 +342,32 @@ void print_bfs_result(traversal* result)
   }
 }
 
+int chromatic_number(Graph* g)
+{
+  int min_num = 0;
+  for (element* i = g->adj_matrix->head; i != NULL; i = i->next) {
+    bool s = false;
+    for (inner_element* j = i->value.neighbours->head; j != NULL; j = j->next) {
+      for (element* k = j->value->value.neighbours->head; k != NULL && k->key != NULL; k = k->next) {
+	if (strcmp(i->key, k->key) == 0) continue;
+	inner_element* tmp = get_hashmap_element_ptr(i->value.neighbours, k->key, k->size);
+	if(tmp == NULL) {
+	  printf("\n%s, %s %s", i->value.label, j->value->value.label, k->key);
+	  s = true;
+	  break;
+	}
+      }
+      if (s) break;
+    }
+    if (s) continue;
+    min_num += 1;
+  }
+  return min_num; 
+}
+
 void dfs(Graph* g, char* src, char* dst);
 void dijsktra(Graph* g, char* src, char* dst);
 void find_independent_sets(Graph* g, char* src, char* dst);
-void minimun_coloring_vertex(Graph* g, char* src, char* dst);
 void minimun_expansion_tree(Graph* g);
 
 void deinit_bfs_result(traversal* result)

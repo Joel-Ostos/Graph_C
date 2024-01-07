@@ -33,4 +33,30 @@ int main(void)
   deinit_graph(g);
   print_graph(p);
   deinit_graph(p);
+
+  Graph* new = init_graph(false,0);
+  add_vertex(new, "1", 1);
+  add_vertex(new, "2", 1);
+  add_vertex(new, "3", 1);
+  add_vertex(new, "4", 1);
+
+  add_edge(new, "1", 1, "2", 1);
+  add_edge(new, "1", 1, "3", 1);
+  add_edge(new, "1", 1, "4", 1);
+
+  add_edge(new, "2", 1, "1", 1);
+  add_edge(new, "2", 1, "3", 1);
+  add_edge(new, "2", 1, "4", 1);
+
+  add_edge(new, "3", 1, "1", 1);
+  add_edge(new, "3", 1, "2", 1);
+  add_edge(new, "3", 1, "4", 1);
+
+  add_edge(new, "4", 1, "1", 1);
+  add_edge(new, "4", 1, "2", 1);
+  add_edge(new, "4", 1, "3", 1);
+
+  print_graph(new);
+  int t = chromatic_number(new);
+  printf("\nresult -> %d", t);
 }
