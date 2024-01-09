@@ -1,10 +1,13 @@
 #include "graph.h"
 #include "queue.h"
+#include "arraylist.h"
 #include <stdlib.h>
 #include <string.h> 
 #define INITIAL_SIZE 23
 #define RESIZE_FACTOR 2
 #define alloc_in_add
+
+arraylist(int)
 
 static Hashmap* init_hashmap(bool opt, size_t size)
 {
@@ -65,7 +68,7 @@ static Vertex* put_hashmap_element(Hashmap* map, char* key, size_t size)
       return NULL;
     }
   }
-  Vertex v = {.label = key, .neighbours = n, .degree = 0, .n_edges = 0};
+  Vertex v = {.label = key, .neighbours = n, .degree = 0, .color = -1, .n_edges = 0};
   element el = {.key = key, .size = size, .value = v, .parent = NULL, .next = NULL};
   if (map->occupied == 0) {
     map->elements[index] = el;
@@ -278,7 +281,8 @@ Vertex* add_vertex(Graph* g, char* label, size_t label_size)
 
 void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
 {
-  put_hashmap_element_ptr(g->adj_matrix, src, dst, size_src, size_dst);
+  inner_element* el = put_hashmap_element_ptr(g->adj_matrix, src, dst, size_src, size_dst);
+  el->value->value.n_neighbours += 1;
 }
 
 void print_graph(Graph* g) {
@@ -344,25 +348,31 @@ void print_bfs_result(traversal* result)
 
 int chromatic_number(Graph* g)
 {
-  int min_num = 0;
   for (element* i = g->adj_matrix->head; i != NULL; i = i->next) {
-    bool s = false;
+    ArrayList_int colors = init_array_int(i->value.n_neighbours);
     for (inner_element* j = i->value.neighbours->head; j != NULL; j = j->next) {
-      for (element* k = j->value->value.neighbours->head; k != NULL && k->key != NULL; k = k->next) {
-	if (strcmp(i->key, k->key) == 0) continue;
-	inner_element* tmp = get_hashmap_element_ptr(i->value.neighbours, k->key, k->size);
-	if(tmp == NULL) {
-	  printf("\n%s, %s %s", i->value.label, j->value->value.label, k->key);
-	  s = true;
-	  break;
-	}
+      if (j->value->value.color > -1) {
+	push_back_array_int(&colors, j->value->value.color);
       }
-      if (s) break;
     }
-    if (s) continue;
-    min_num += 1;
+    for (int k = 1;; k++) {
+      int* b = find_int(&colors, k);
+      if (b == NULL) {
+	j->value->value.color = *b;
+	push_back_array_int(final_colors);
+	free(b);
+	break;
+      }
+    }
+    deinit_array_int(colors);
   }
-  return min_num; 
+  int chromatic = -1;
+  for (int i = 0; i < final_colors.occupied; i++) {
+    if (final_colors.array[i] > chromatic) {
+      chromatic = final_colors.array[i];
+    }
+  }
+  return chromatic;
 }
 
 void dfs(Graph* g, char* src, char* dst);

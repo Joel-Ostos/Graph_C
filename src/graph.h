@@ -37,6 +37,7 @@ struct Vertex {
   size_t degree;
   size_t n_edges;
   size_t n_neighbours;
+  int color;
 };						
 
 struct element {
