@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
-
 typedef struct Graph Graph;	
 typedef struct Vertex Vertex;	
 typedef struct Hashmap Hashmap;

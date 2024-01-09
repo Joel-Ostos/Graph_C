@@ -39,24 +39,60 @@ int main(void)
   add_vertex(new, "2", 1);
   add_vertex(new, "3", 1);
   add_vertex(new, "4", 1);
+  add_vertex(new, "5", 1);
+  add_vertex(new, "6", 1);
+  add_vertex(new, "7", 1);
+  add_vertex(new, "8", 1);
+  add_vertex(new, "9", 1);
+  add_vertex(new, "10", 2);
 
   add_edge(new, "1", 1, "2", 1);
-  add_edge(new, "1", 1, "3", 1);
-  add_edge(new, "1", 1, "4", 1);
-
   add_edge(new, "2", 1, "1", 1);
+
   add_edge(new, "2", 1, "3", 1);
-  add_edge(new, "2", 1, "4", 1);
-
-  add_edge(new, "3", 1, "1", 1);
   add_edge(new, "3", 1, "2", 1);
-  add_edge(new, "3", 1, "4", 1);
 
-  add_edge(new, "4", 1, "1", 1);
-  add_edge(new, "4", 1, "2", 1);
+  add_edge(new, "3", 1, "4", 1);
   add_edge(new, "4", 1, "3", 1);
+
+  add_edge(new, "4", 1, "5", 1);
+  add_edge(new, "5", 1, "4", 1);
+
+  add_edge(new, "5", 1, "1", 1);
+  add_edge(new, "1", 1, "5", 1);
+
+  add_edge(new, "5", 1, "10", 2);
+  add_edge(new, "10", 2, "5", 1);
+
+  add_edge(new, "1", 1, "6", 1);
+  add_edge(new, "6", 1, "1", 1);
+
+  add_edge(new, "2", 1, "7", 1);
+  add_edge(new, "7", 1, "2", 1);
+
+  add_edge(new, "3", 1, "8", 1);
+  add_edge(new, "8", 1, "3", 1);
+
+  add_edge(new, "4", 1, "9", 1);
+  add_edge(new, "9", 1, "4", 1);
+
+  add_edge(new, "10", 2, "7", 1);
+  add_edge(new, "7", 1, "10", 2);
+
+  add_edge(new, "10", 2, "8", 1);
+  add_edge(new, "8", 1, "10", 2);
+
+  add_edge(new, "6", 1, "9", 1);
+  add_edge(new, "9", 1, "6", 1);
+
+  add_edge(new, "6", 2, "8", 1);
+  add_edge(new, "8", 1, "6", 2);
+
+  add_edge(new, "7", 1, "9", 1);
+  add_edge(new, "9", 1, "7", 1);
 
   print_graph(new);
   int t = chromatic_number(new);
   printf("\nresult -> %d", t);
+  deinit_graph(new);
 }

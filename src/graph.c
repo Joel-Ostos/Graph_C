@@ -346,6 +346,22 @@ void print_bfs_result(traversal* result)
   }
 }
 
+bool find_valid_number(ArrayList_int* arr, int el)		
+{									
+  for (size_t  i = 0; i < arr->occupied; i++) {			
+    if (el == arr->array[i]) {						
+      return false;							
+    }									
+  }									
+  return true;								
+}									
+
+
+void dfs(Graph* g, char* src, char* dst);
+void dijsktra(Graph* g, char* src, char* dst);
+void find_independent_sets(Graph* g, char* src, char* dst);
+void minimun_expansion_tree(Graph* g);
+
 int chromatic_number(Graph* g)
 {
   for (element* i = g->adj_matrix->head; i != NULL; i = i->next) {
@@ -356,29 +372,25 @@ int chromatic_number(Graph* g)
       }
     }
     for (int k = 1;; k++) {
-      int* b = find_int(&colors, k);
-      if (b == NULL) {
-	j->value->value.color = *b;
-	push_back_array_int(final_colors);
-	free(b);
+      if (colors.occupied == 0) {
+	i->value.color = 1;
+	break;
+      }
+      if (find_valid_number(&colors, k)) {
+	i->value.color = k;
 	break;
       }
     }
-    deinit_array_int(colors);
+    deinit_array_int(&colors);
   }
-  int chromatic = -1;
-  for (int i = 0; i < final_colors.occupied; i++) {
-    if (final_colors.array[i] > chromatic) {
-      chromatic = final_colors.array[i];
+  int chromatic = 0;
+  for (element* i = g->adj_matrix->head; i != NULL; i = i->next) {
+    if (i->value.color > chromatic) {
+      chromatic = i->value.color;
     }
   }
   return chromatic;
 }
-
-void dfs(Graph* g, char* src, char* dst);
-void dijsktra(Graph* g, char* src, char* dst);
-void find_independent_sets(Graph* g, char* src, char* dst);
-void minimun_expansion_tree(Graph* g);
 
 void deinit_bfs_result(traversal* result)
 {
