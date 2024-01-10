@@ -28,8 +28,8 @@ int main(void)
 
   print_graph(g);
   traversal* result = bfs(g, "Colombia", strlen("Colombia"), "Brazil", strlen("Brazil"));
-  print_bfs_result(result);
-  deinit_bfs_result(result);
+  print_traversal_result(result);
+  deinit_traversal_result(result);
   deinit_graph(g);
   print_graph(p);
   deinit_graph(p);
@@ -94,5 +94,12 @@ int main(void)
   print_graph(new);
   int t = chromatic_number(new);
   printf("\nresult -> %d", t);
+
+  traversal* result_dfs = dfs(new, "1", 1, "10", 2);
+  traversal* result_bfs = bfs(new, "1", 1, "10", 2);
+  print_traversal_result(result_dfs);
+  print_traversal_result(result_bfs);
+  deinit_traversal_result(result_dfs);
+  deinit_traversal_result(result_bfs);
   deinit_graph(new);
 }

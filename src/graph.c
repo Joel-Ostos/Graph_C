@@ -1,5 +1,6 @@
 #include "graph.h"
 #include "queue.h"
+#include "stack.h"
 #include "arraylist.h"
 #include <stdlib.h>
 #include <string.h> 
@@ -296,15 +297,57 @@ void print_graph(Graph* g) {
 }
 
 void cut_edge(Graph* g, char* src, char* dst);
+void contract_edge(Graph* g, char* src, char* dst);
+
+traversal* dfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
+{
+  Stack_element S = init_stack_element();
+  element* source = get_hashmap_element(g->adj_matrix, src, size_src);
+  source->parent = source;
+  element* dest = get_hashmap_element(g->adj_matrix, dst, size_dst);
+  if (source == NULL || dest == NULL) return NULL;
+  push_stack_element(&S, source);
+  while (!empty_stack_element(&S)) {
+    element* actual =  pop_stack_element(&S);
+    for (inner_element* i = actual->value.neighbours->head; i != NULL; i = i->next) {
+      if (i->value->parent != NULL) continue;
+      push_stack_element(&S, i->value);
+      i->value->parent = actual;
+    }
+    if (dest->parent != NULL) {
+      break;
+    }
+  }
+  if (dest->parent == NULL) {
+    printf("Path not found");
+    return NULL;
+  };
+  int cont = 1;
+  for (element* i = dest; i != source; i = i->parent) {
+    cont++;
+  }
+  element** arr = (element**) malloc(sizeof(element*)*(cont+1));
+  traversal* el = (traversal*) malloc(sizeof(traversal));
+  el->elements = arr;
+  el->size = cont;
+  int j = cont-1;
+  for (element* i = dest; j >= 0; i = i->parent, j--) {
+    arr[j] = i;
+  }
+  for (element* b = g->adj_matrix->head; b != NULL; b = b->next) {
+    b->parent = NULL;
+  }
+  deinit_stack_element(&S);
+  return el;
+}
 
 traversal* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
 {
   Queue_element Q = init_Queue_element();
   element* source = get_hashmap_element(g->adj_matrix, src, size_src);
+  source->parent = source;
   element* dest = get_hashmap_element(g->adj_matrix, dst, size_dst);
-  if (source == NULL || dest == NULL) {
-    return NULL;
-  }
+  if (source == NULL || dest == NULL) return NULL;
   Queue_element_push(&Q, source);
   while (!Queue_element_empty(&Q)) {
     element* actual =  Queue_element_pop(&Q);
@@ -313,22 +356,24 @@ traversal* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
       Queue_element_push(&Q, i->value);
       i->value->parent = actual;
     }
+    if (dest->parent != NULL) {
+      break;
+    }
   }
   if (dest->parent == NULL) {
     printf("Path not found");
     return NULL;
   };
-  size_t cont = 0;
-  for (element* i = dest; i != NULL; i = i->parent) {
+  int cont = 1;
+  for (element* i = dest; i != source; i = i->parent) {
     cont++;
   }
-  element** arr = (element**) malloc(sizeof(element*)*cont);
+  element** arr = (element**) malloc(sizeof(element*)*(cont+1));
   traversal* el = (traversal*) malloc(sizeof(traversal));
   el->elements = arr;
   el->size = cont;
-  element* i = dest;
-  size_t j = 0;
-  for (; i != NULL && j < cont; i = i->parent, j++) {
+  int j = cont-1;
+  for (element* i = dest; j >= 0; i = i->parent, j--) {
     arr[j] = i;
   }
   for (element* b = g->adj_matrix->head; b != NULL; b = b->next) {
@@ -338,10 +383,17 @@ traversal* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
   return el;
 }
 
-void print_bfs_result(traversal* result)
+void dijsktra(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
+{
+}
+
+void find_independent_sets(Graph* g, char* src, char* dst);
+void minimun_expansion_tree(Graph* g);
+
+void print_traversal_result(traversal* result)
 {
   printf("\n");
-  for (int i = (result->size)-1; i >= 0 ; i--) {
+  for (size_t i = 0; i < result->size; i++) {
     printf("%s ", result->elements[i]->value.label);
   }
 }
@@ -355,12 +407,6 @@ bool find_valid_number(ArrayList_int* arr, int el)
   }									
   return true;								
 }									
-
-
-void dfs(Graph* g, char* src, char* dst);
-void dijsktra(Graph* g, char* src, char* dst);
-void find_independent_sets(Graph* g, char* src, char* dst);
-void minimun_expansion_tree(Graph* g);
 
 int chromatic_number(Graph* g)
 {
@@ -392,7 +438,13 @@ int chromatic_number(Graph* g)
   return chromatic;
 }
 
-void deinit_bfs_result(traversal* result)
+void deinit_traversal_result(traversal* result)
+{
+  free(result->elements);
+  free(result);
+}
+
+void deinit_dfs_result(traversal* result)
 {
   free(result->elements);
   free(result);

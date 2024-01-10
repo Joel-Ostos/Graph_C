@@ -45,7 +45,6 @@ struct element {
   Vertex value;
   element* next;
   element* parent;
-  bool state;
 };
 
 struct inner_element {
@@ -89,11 +88,11 @@ Vertex* add_vertex(Graph* g, char* label, size_t size);
 void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
 void cut_edge(Graph* g, char* src, char* dst);
 void print_graph(Graph* g);
-void dfs(Graph* g, char* src, char* dst);
+traversal* dfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
 traversal* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
-void print_bfs_result(traversal* result);
-void deinit_bfs_result(traversal* result);
-void dijsktra(Graph* g, char* src, char* dst);
+void print_traversal_result(traversal* result);
+void deinit_traversal_result(traversal* result);
+void dijsktra(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
 void find_independent_sets(Graph* g, char* src, char* dst);
 int chromatic_number(Graph* g);
 void minimun_expansion_tree(Graph* g);
