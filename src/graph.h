@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
+
 typedef struct Graph Graph;	
 typedef struct Vertex Vertex;	
 typedef struct Hashmap Hashmap;
@@ -52,6 +53,7 @@ struct inner_element {
   size_t size;
   element* value;
   inner_element* next;
+  int distance;
 };
 
 struct Graph {				
@@ -77,15 +79,16 @@ static void deinit_hashmap(Hashmap* map);
 
 static Hashmap_ptr* init_hashmap_ptr(bool opt, size_t size);
 static void resize_hashmap_ptr(Hashmap_ptr* map, Hashmap* src);
-static inner_element* put_hashmap_element_ptr(Hashmap* map, char* key, char* dst, size_t size, size_t size_dst);
+static inner_element* put_hashmap_element_ptr(Hashmap* map, char* key, char* dst, size_t size, size_t size_dst, int dist);
 static inner_element* get_hashmap_element_ptr(Hashmap_ptr* map, char* key, size_t size);
 static void delete_hashmap_element_ptr(Hashmap_ptr* map, char* key, size_t size);
 static void iterate_hashmap_ptr(Hashmap_ptr* map);
 static void deinit_hashmap_ptr(Hashmap_ptr* map);
 
 Graph* init_graph();
+Graph* complete_graph(int n);
 Vertex* add_vertex(Graph* g, char* label, size_t size);
-void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
+void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst, int dist);
 void cut_edge(Graph* g, char* src, char* dst);
 void print_graph(Graph* g);
 traversal* dfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);

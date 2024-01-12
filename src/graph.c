@@ -4,7 +4,7 @@
 #include "arraylist.h"
 #include <stdlib.h>
 #include <string.h> 
-#define INITIAL_SIZE 23
+#define INITIAL_SIZE 123
 #define RESIZE_FACTOR 2
 #define alloc_in_add
 
@@ -53,7 +53,7 @@ static void resize_hashmap(Hashmap* map)
   if (map->capacity == 0) exit(1);
   map->elements = (element*) realloc(map->elements, sizeof(element) * (map->capacity*RESIZE_FACTOR));
   map->capacity *= RESIZE_FACTOR;
-  for (element* i = map->head; i->key != NULL; i = i->next) {
+  for (element* i = map->head; i != NULL; i = i->next) {
     put_hashmap_element(map, i->key, i->size);
     i->key = NULL;
   }
@@ -171,13 +171,13 @@ static void resize_hashmap_ptr(Hashmap_ptr* map, Hashmap* map_src)
   if (map->capacity == 0) exit(1);
   map->elements = (inner_element*) realloc(map->elements, sizeof(inner_element) * (map->capacity * RESIZE_FACTOR));
   map->capacity *= RESIZE_FACTOR;
-  for (inner_element* i = map->head; i->key != NULL; i = i->next) {
-    put_hashmap_element_ptr(map_src, i->key, i->key, i->size, i->size);
+  for (inner_element* i = map->head; i != NULL; i = i->next) {
+    put_hashmap_element_ptr(map_src, i->key, i->key, i->size, i->size, i->distance);
     i->key = NULL;
   }
 }
 
-static inner_element* put_hashmap_element_ptr(Hashmap* map_src, char* key, char* dst, size_t size, size_t size_dst)
+static inner_element* put_hashmap_element_ptr(Hashmap* map_src, char* key, char* dst, size_t size, size_t size_dst, int dist)
 {
   element* el_1 = get_hashmap_element(map_src, key, size);
   element* el_2 = get_hashmap_element(map_src, dst, size_dst);
@@ -190,7 +190,7 @@ static inner_element* put_hashmap_element_ptr(Hashmap* map_src, char* key, char*
       return NULL;
     }
   }
-  inner_element el = {.key = dst , .size = el_2->size, .value = el_2, .next = NULL};
+  inner_element el = {.key = dst , .size = el_2->size, .value = el_2, .next = NULL, .distance = dist};
   if (map->occupied == 0) {
     map->elements[index] = el;
     map->tail = &(map->elements[index]);
@@ -270,6 +270,24 @@ Graph* init_graph()
   return g;
 }
 
+Graph* complete_graph(int n)
+{
+  Graph* g = init_graph();
+  for (int i = 0; i < n; i++) {
+    int length = snprintf( NULL, 0, "%d", i );
+    char* str = malloc( length + 1 );
+    snprintf( str, length + 1, "%d", i );
+    add_vertex(g, str, length);
+    free(str);
+  }
+  for (element* i = g->adj_matrix->head; i != NULL; i = i->next) {
+    for (element* j = i->next; j != NULL; j = j->next) {
+      add_edge(g, i->value.label, i->size, j->value.label, j->size, 0);
+    }
+  }
+  return g;
+}
+
 Vertex* add_vertex(Graph* g, char* label, size_t label_size)
 {
 #ifdef alloc_in_add
@@ -280,10 +298,16 @@ Vertex* add_vertex(Graph* g, char* label, size_t label_size)
   return put_hashmap_element(g->adj_matrix, label, label_size);
 }
 
-void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
+void add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst, int dist)
 {
-  inner_element* el = put_hashmap_element_ptr(g->adj_matrix, src, dst, size_src, size_dst);
+  inner_element* el = put_hashmap_element_ptr(g->adj_matrix, src, dst, size_src, size_dst, dist);
+  inner_element* el_2 = put_hashmap_element_ptr(g->adj_matrix, dst, src, size_dst, size_src, dist);
+  if (el == NULL || el_2 == NULL) {
+    printf("An error ocurred when trying to add an edge\n");
+    exit(1);
+  }
   el->value->value.n_neighbours += 1;
+  el_2->value->value.n_neighbours += 1;
 }
 
 void print_graph(Graph* g) {
