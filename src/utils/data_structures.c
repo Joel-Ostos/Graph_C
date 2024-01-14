@@ -30,26 +30,28 @@ HashMap*  init_hashmap(bool mode, size_t n, size_t (*hash)(const char* str, size
   return map;
 }
 
-void hashmap_resize(HashMap* map) {
-  if (map->capacity == 0) exit(1);
+void hashmap_resize(HashMap* map, size_t size_k, size_t size_v) {
+  assert(map->capacity != 0);
   map->elements = (Element*) realloc(map->elements, sizeof(Element) * (map->capacity * RESIZE_FACTOR));
   assert(map->elements != NULL);
   map->capacity *= RESIZE_FACTOR;
   for (Element* i = map->head; i != NULL; i = i->next) {
-    hashmap_put(map, i->key, i->k_size, i->value);
+    hashmap_put(map, i->key, i->k_size, i->value, size_k * i->k_size, size_v);
     i->key = NULL;
   }
 }
 
-bool hashmap_put(HashMap* map, const void* key, size_t size, void* val) {
+bool hashmap_put(HashMap* map, const void* key, size_t size, void* val, size_t size_k, size_t size_v) {
+  if (map->capacity == map->occupied) hashmap_resize(map, size_k, size_v);
   size_t index = map->hash_func(key, size) % map->capacity;
-  void* new_val = malloc (sizeof(void*));
-  memcpy(new_val, val, sizeof(void*));
-  Element el = {.key = key, .k_size = size, .value = new_val, .next = NULL};
+  void* n_key = malloc(size_k);
+  memcpy(n_key, key, size_k);
+  void* n_val = malloc(size_v);
+  memcpy(n_val, val, size_v);
+  Element el = {.key = n_key, .k_size = size, .value = n_val, .next = NULL};
 
-  if (map->capacity == map->occupied) hashmap_resize(map);
   if (map->elements[index].key != NULL) {
-    if (memcmp(map->elements[index].key, key, size) == 0) {
+    if (map->elements[index].k_size == size && memcmp(map->elements[index].key, key, size) == 0) {
       return false;
     }
   }
@@ -57,7 +59,7 @@ bool hashmap_put(HashMap* map, const void* key, size_t size, void* val) {
     map->elements[index] = el;
     map->tail = &(map->elements[index]);
     map->head = &(map->elements[index]);
-    map->occupied++;
+    map->occupied += 1;
     return true;
   }
 
@@ -69,7 +71,7 @@ bool hashmap_put(HashMap* map, const void* key, size_t size, void* val) {
     map->elements[index] = el;
     map->tail->next = &map->elements[index];
     map->tail = &map->elements[index];
-    map->occupied++;
+    map->occupied += 1;
     return true;
   }
   printf("Cannot put the element\n");
@@ -77,14 +79,15 @@ bool hashmap_put(HashMap* map, const void* key, size_t size, void* val) {
 }
 
 void* hashmap_get(HashMap* map, const void* key, size_t size) {
+  assert(map->hash_func != NULL);
   size_t index = map->hash_func(key, size) % map->capacity;
   if (map->elements[index].key != NULL) {
-    if (memcmp(map->elements[index].key, key, size) == 0) {
+    if (map->elements[index].k_size == size && memcmp(map->elements[index].key, key, size) == 0) {
       return map->elements[index].value;
     }
   }
   for (Element* i = map->head; i != NULL && i->key != NULL; i = i->next) {
-    if (memcmp(i->key, key, size) == 0) {
+    if (i->k_size == size && memcmp(i->key, key, size) == 0) {
       return i->value;
     }
   }
@@ -109,8 +112,8 @@ void hashmap_delete(HashMap* map, const void* key, size_t size)
 
 void deinit_hashmap(HashMap* map) {
   for (Element* i = map->head; i != NULL; i = i->next) {
-    free(i->value);
     free(i->key);
+    free(i->value);
   }
   free(map->elements);
   free(map);
@@ -176,3 +179,93 @@ void deinit_array(ArrayList* list)
   free(list->array);							
   free(list);
 }									
+// Queue
+Queue* init_queue(size_t n) {
+  void** array = (void**) malloc(sizeof(void*) * n);
+  Queue* queue = (Queue*) malloc(sizeof(Queue));
+  queue->array = array;
+  queue->capacity = n;
+  queue->occupied = 0;
+  queue->p_head = 0;
+  return queue;
+}
+
+void queue_push(Queue* q, void* el) {
+  if (q->occupied == q->capacity) {
+    q->array = reallocarray(q->array, q->occupied+1, sizeof(void*));
+    assert(q->array != NULL);
+    q->array[q->occupied] = el;
+    q->occupied++;
+    q->capacity++;
+    return;
+  }
+  q->array[q->occupied] = el;
+  q->occupied++;
+}
+
+void* queue_pop(Queue* queue) {
+  if (queue->occupied <= 0) return NULL;
+  void* tmp = queue->array[queue->p_head]; 
+  queue->p_head++;
+  return tmp;
+}
+
+void* queue_peek(Queue* queue) {
+  if (queue->occupied <= 0) return NULL;
+  return queue->array[queue->occupied]; 
+}
+
+bool queue_empty(Queue* q) {
+  if (q->p_head == q->occupied) return true;
+  return false;
+}
+
+void deinit_queue(Queue* queue) {
+  free(queue->array);
+  free(queue);
+}
+
+// Stack
+Stack* init_stack(size_t n) {
+  void** array = (void**) malloc(sizeof(void*) * n);
+  Stack* stack = (Stack*) malloc(sizeof(Stack));
+  stack->array = array;
+  stack->capacity = n;
+  stack->occupied = 0;
+  return stack;
+}
+
+void stack_push(Stack* stack, void* el) {
+  if (stack->occupied == stack->capacity) {
+    stack->array = reallocarray(stack->array, stack->occupied+1, sizeof(void*));
+    assert(stack->array != NULL);
+    stack->array[stack->occupied] = el;
+    stack->occupied++;
+    stack->capacity++;
+    return;
+  }
+  stack->array[stack->occupied] = el;
+  stack->occupied++;
+}
+
+void* stack_pop(Stack* stack) {
+  if (stack->occupied <= 0) return NULL;
+  void* tmp = stack->array[stack->occupied-1]; 
+  stack->occupied--;
+  return tmp;
+}
+
+void* stack_peek(Stack* stack) {
+  if (stack->occupied == 0) return NULL;
+  return stack->array[stack->occupied]; 
+}
+
+bool stack_empty(Stack* stack) {
+  if (stack->occupied == 0) return true;
+  return false;
+}
+
+void deinit_stack(Stack* stack) {
+  free(stack->array);
+  free(stack);
+}
