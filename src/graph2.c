@@ -10,13 +10,31 @@
 // Graph functions, ready, set go!
 Graph* init_graph(size_t (*hash)(const char* str, size_t size)) {
   Graph* g = (Graph*) malloc(sizeof(Graph));
-  g->adj_matrix = init_hashmap(false, 0, hash);
+  g->hash = hash;
+  g->adj_matrix = init_hashmap(false, 0, g->hash);
   g->degree = 0;
   g->n_edges = 0;
   g->n_vertex = 0;
   return g;
 }
 
+Graph* complete_graph(size_t (*hash)(const char* str, size_t size), int n) {
+  Graph* g = init_graph(hash);
+  assert(g != NULL);
+  for (int i = 1; i <= n; i++) {
+    int length = snprintf(NULL, 0, "%d", i);
+    char str[length];
+    snprintf(str, length+1, "%d", i);
+    add_vertex(g, str, length);
+  }
+  for (Element* i = g->adj_matrix->head; i != NULL ; i = i->next) {
+    for (Element* j = i->next; j != NULL; j = j->next) {
+      add_edge(g, ((Vertex*)i->value)->label, ((Vertex*)i->value)->label_size,
+	       ((Vertex*)j->value)->label, ((Vertex*)j->value)->label_size, 0);
+    }
+  }
+  return g;
+}
 //Graph* complete_graph(int n)
 //{
 //  Graph* g = init_graph();
@@ -37,9 +55,11 @@ Graph* init_graph(size_t (*hash)(const char* str, size_t size)) {
 
 bool add_vertex(Graph* g, const char* label, size_t label_size)
 {
-  Vertex v = {.label = (char*) label, .label_size = label_size, .degree = 0, .n_edges = 0, .color = 0};
+  char* str = malloc(label_size+1);
+  memcpy(str, label, label_size+1);
+  Vertex v = {.label = str, .label_size = label_size, .degree = 0, .n_edges = 0, .color = 0};
   v.edges = init_hashmap(false, 0, g->hash);
-  if (hashmap_put(g->adj_matrix, (const void*) label, label_size, (void*) &v, sizeof(*label) * label_size, sizeof(v))) {
+  if (hashmap_put(g->adj_matrix, (const void*) label, label_size, (void*) &v, sizeof(*label) * label_size, sizeof(Vertex))) {
     g->n_vertex++;
     return true;
   }
@@ -70,49 +90,7 @@ bool add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst, 
 
 //void cut_edge(Graph* g, char* src, char* dst);
 //void contract_edge(Graph* g, char* src, char* dst);
-//
-//traversal* dfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
-//{
-//  Stack_element S = init_stack_element();
-//  element* source = get_hashmap_element(g->adj_matrix, src, size_src);
-//  source->parent = source;
-//  element* dest = get_hashmap_element(g->adj_matrix, dst, size_dst);
-//  if (source == NULL || dest == NULL) return NULL;
-//  push_stack_element(&S, source);
-//  while (!empty_stack_element(&S)) {
-//    element* actual =  pop_stack_element(&S);
-//    for (inner_element* i = actual->value.neighbours->head; i != NULL; i = i->next) {
-//      if (i->value->parent != NULL) continue;
-//      push_stack_element(&S, i->value);
-//      i->value->parent = actual;
-//    }
-//    if (dest->parent != NULL) {
-//      break;
-//    }
-//  }
-//  if (dest->parent == NULL) {
-//    printf("Path not found");
-//    return NULL;
-//  };
-//  int cont = 1;
-//  for (element* i = dest; i != source; i = i->parent) {
-//    cont++;
-//  }
-//  element** arr = (element**) malloc(sizeof(element*)*(cont+1));
-//  traversal* el = (traversal*) malloc(sizeof(traversal));
-//  el->elements = arr;
-//  el->size = cont;
-//  int j = cont-1;
-//  for (element* i = dest; j >= 0; i = i->parent, j--) {
-//    arr[j] = i;
-//  }
-//  for (element* b = g->adj_matrix->head; b != NULL; b = b->next) {
-//    b->parent = NULL;
-//  }
-//  deinit_stack_element(&S);
-//  return el;
-//}
-//
+
 ArrayList* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
 {
   Queue* Q = init_queue(20);
@@ -193,9 +171,9 @@ ArrayList* dfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
   return arraylist;
 }
 
-//void dijsktra(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
-//{
-//}
+void dijsktra(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
+{
+}
 //
 //void find_independent_sets(Graph* g, char* src, char* dst);
 //void minimun_expansion_tree(Graph* g);
@@ -273,6 +251,7 @@ void deinit_traversal(ArrayList* result) {
 void deinit_graph(Graph* g)
 {
   for (Element* i = g->adj_matrix->head; i != NULL ; i = i->next) {
+    free(((Vertex*)i->value)->label);
     deinit_hashmap(((Vertex*)i->value)->edges);
   }
   deinit_hashmap(g->adj_matrix);

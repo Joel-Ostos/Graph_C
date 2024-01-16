@@ -33,8 +33,8 @@ struct graph {
   size_t (*hash)(const char* str, size_t size);
 };						
 
-Graph* init_graph();
-Graph* complete_graph(int n);
+Graph* init_graph(size_t (*hash)(const char* str, size_t size));
+Graph* complete_graph(size_t (*hash)(const char* str, size_t size), int n);
 bool add_vertex(Graph* g, const char* label, size_t label_size);
 bool add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst, int dist);
 bool cut_edge(Graph* g, char* src, char* dst);

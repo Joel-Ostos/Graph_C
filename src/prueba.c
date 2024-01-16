@@ -21,7 +21,6 @@ int main(void) {
   add_vertex(g, "Ecuador", strlen("Ecuador"));
   add_vertex(g, "Bolivia", strlen("Bolivia"));
   add_vertex(g, "Chile", strlen("Chile"));
-  g->hash = *hash_a;
 
   add_edge(g, "Colombia", strlen("Colombia"), "Brasil", strlen("Brasil"), 0);
   add_edge(g, "Colombia", strlen("Colombia"), "Peru", strlen("Peru"), 0);
@@ -54,7 +53,6 @@ int main(void) {
   add_vertex(k_3, "5", 1);
   add_vertex(k_3, "6", 1);
 
-  k_3->hash = *hash_a;
   add_edge(k_3, "1", 1, "2", 1, 0);
   add_edge(k_3, "1", 1, "6", 1, 0);
   add_edge(k_3, "1", 1, "3", 1, 0);
@@ -79,4 +77,8 @@ int main(void) {
   }
   printf("Chromatic number graph 2: %d", chromatic_number(k_3));
   deinit_graph(k_3);
+
+  g = complete_graph(&hash_a, 100);
+  print_graph(g);
+  deinit_graph(g);
 }
