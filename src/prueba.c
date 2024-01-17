@@ -80,5 +80,6 @@ int main(void) {
 
   g = complete_graph(&hash_a, 100);
   print_graph(g);
+  printf("Chromatic number graph 3: %d", chromatic_number(g));
   deinit_graph(g);
 }

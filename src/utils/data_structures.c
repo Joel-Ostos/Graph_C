@@ -1,5 +1,6 @@
 #include "data_structures.h"
 #include <assert.h>
+#include <math.h>
 #include <string.h>
 
 #define INITIAL_SIZE 123
@@ -112,7 +113,7 @@ void hashmap_delete(HashMap* map, const void* key, size_t size)
 
 void deinit_hashmap(HashMap* map) {
   for (Element* i = map->head; i != NULL; i = i->next) {
-    free(i->key);
+    free((void*)i->key);
     free(i->value);
   }
   free(map->elements);
@@ -140,7 +141,7 @@ void array_push_back(ArrayList* list, void* data)
     list->occupied += 1;						
     return;								
   }									
-  void* new = reallocarray(list->array, list->capacity+1, sizeof(data));	
+  list->array = reallocarray(list->array, list->capacity+1, sizeof(data));	
   assert(new != NULL);
   list->array[list->occupied] = data;				
   list->occupied++;
@@ -156,7 +157,7 @@ void array_insert_at_index(ArrayList* list, void* data, size_t index)
     list->occupied += 1;						
     return;								
   }else if (list->occupied == list->capacity && index <= list->occupied){ 
-    list->array = (void*) reallocarray(list->array, list->capacity + 1, sizeof(data)); 
+    list->array = (void**) reallocarray(list->array, list->capacity + 1, sizeof(data)); 
     memcpy(list->array+index, list->array+index-1, sizeof(void*) * (list->capacity-index)+1); 
     list->array[index] = data;					
     list->occupied += 1;						
@@ -179,6 +180,7 @@ void deinit_array(ArrayList* list)
   free(list->array);							
   free(list);
 }									
+
 // Queue
 Queue* init_queue(size_t n) {
   void** array = (void**) malloc(sizeof(void*) * n);
@@ -192,7 +194,7 @@ Queue* init_queue(size_t n) {
 
 void queue_push(Queue* q, void* el) {
   if (q->occupied == q->capacity) {
-    q->array = reallocarray(q->array, q->occupied+1, sizeof(void*));
+    q->array = (void**)reallocarray(q->array, q->occupied+1, sizeof(void*));
     assert(q->array != NULL);
     q->array[q->occupied] = el;
     q->occupied++;
@@ -224,6 +226,90 @@ void deinit_queue(Queue* queue) {
   free(queue->array);
   free(queue);
 }
+
+// Priority Queue
+
+Priority_Queue* init_p_queue(size_t initial_size, bool (*priority_function)(Priority_Queue* Q, void* a, void* b))		
+{									
+  void** arr = (void**)malloc(sizeof(void*)*initial_size);
+  assert(arr != NULL);
+  Priority_Queue* Q = (Priority_Queue*) malloc(sizeof(Priority_Queue));		
+  assert(Q != NULL);
+  Q->priority_function = priority_function;
+  Q->array = arr;							
+  Q->capacity = initial_size;						
+  Q->occupied = 0;							
+  return Q;
+}									
+
+void swap(Priority_Queue* Q, size_t a, size_t b)
+{
+  void* tmp = Q->array[a];
+  Q->array[a] = Q->array[b];
+  Q->array[b] = tmp;
+}
+
+void shift_up(Priority_Queue* Q, int index)
+{
+  int parent = floor((index-1)/2);
+  while (index != 0 && Q->priority_function(Q, Q->array[parent], Q->array[index])) {
+    swap(Q, parent, index);
+    index = parent;
+    parent = floor((index-1)/2);
+  }
+}
+
+void shift_down(Priority_Queue* Q, int index)
+{
+  int a = (2*index)+1;
+  int b = (2*index)+2;
+  int max = index;
+  while ((a < (int)Q->occupied && Q->priority_function(Q, Q->array[max], Q->array[a])) ||
+	 (b < (int)Q->occupied && Q->priority_function(Q, Q->array[max], Q->array[b]))) {
+    if (b >= (int)Q->occupied || !Q->priority_function(Q, Q->array[a], Q->array[b])) {
+      swap(Q, a, max);
+      max = a;
+    } else {
+      swap(Q, b, max);
+      max = b;
+    }
+    a = (2*max)+1;
+    b = (2*max)+2;
+  }
+}
+
+void p_queue_push(Priority_Queue* Q, void* data)	
+{
+  if (Q->occupied < Q->capacity) {				
+    Q->array[Q->occupied] = data;				
+    shift_up(Q, Q->occupied);
+    Q->occupied += 1;						
+    return;								
+  }									
+  assert(new != NULL);
+  Q->array = (void**)reallocarray(Q->array, Q->capacity*2, sizeof(data));
+  Q->array[Q->occupied] = data;				
+  shift_up(Q, Q->occupied);
+  Q->occupied++;
+  Q->capacity++;
+  return;								
+}	
+
+void* p_queue_pop(Priority_Queue* Q)	
+{
+  if (Q->occupied == 0) return NULL;
+  void* tmp = Q->array[0];
+  swap(Q, 0, Q->occupied-1);
+  Q->occupied--;
+  shift_down(Q, 0);
+  return tmp;								
+}	
+
+void deinit_p_queue(Priority_Queue* list)
+{									
+  free(list->array);							
+  free(list);
+}									
 
 // Stack
 Stack* init_stack(size_t n) {
