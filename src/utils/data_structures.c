@@ -142,7 +142,7 @@ void array_push_back(ArrayList* list, void* data)
     return;								
   }									
   list->array = reallocarray(list->array, list->capacity+1, sizeof(data));	
-  assert(new != NULL);
+  assert(list->array != NULL);
   list->array[list->occupied] = data;				
   list->occupied++;
   list->capacity++;
@@ -286,8 +286,8 @@ void p_queue_push(Priority_Queue* Q, void* data)
     Q->occupied += 1;						
     return;								
   }									
-  assert(new != NULL);
   Q->array = (void**)reallocarray(Q->array, Q->capacity*2, sizeof(data));
+  assert(Q->array != NULL);
   Q->array[Q->occupied] = data;				
   shift_up(Q, Q->occupied);
   Q->occupied++;
@@ -305,6 +305,10 @@ void* p_queue_pop(Priority_Queue* Q)
   return tmp;								
 }	
 
+bool p_queue_empty(Priority_Queue* q) {
+  if (q->occupied == 0) return true;
+  return false;
+}
 void deinit_p_queue(Priority_Queue* list)
 {									
   free(list->array);							

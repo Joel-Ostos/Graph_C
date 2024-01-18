@@ -5,7 +5,8 @@
 #include <stdbool.h>
 #include "utils/data_structures.h"
 
-typedef struct graph Graph;	
+typedef struct uw_graph UW_Graph;	
+typedef struct w_graph W_Graph;	
 typedef struct vertex Vertex;	
 typedef struct edge Edge;	
 typedef struct traversal Traversal;
@@ -18,6 +19,7 @@ struct vertex {
   size_t n_edges;
   int color;
   Vertex* parent;
+  bool visited;
 };						
 
 struct edge {
@@ -25,7 +27,7 @@ struct edge {
   size_t length;
 };						
 
-struct graph {				
+struct w_graph {				
   HashMap* adj_matrix;				
   size_t degree;
   size_t n_edges;
@@ -33,20 +35,29 @@ struct graph {
   size_t (*hash)(const char* str, size_t size);
 };						
 
-Graph* init_graph(size_t (*hash)(const char* str, size_t size));
-Graph* complete_graph(size_t (*hash)(const char* str, size_t size), int n);
-bool add_vertex(Graph* g, const char* label, size_t label_size);
-bool add_edge(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst, int dist);
-bool cut_edge(Graph* g, char* src, char* dst);
-void print_graph(Graph* g);
-ArrayList* dfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
-ArrayList* bfs(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
+struct uw_graph {				
+  HashMap* adj_matrix;				
+  size_t degree;
+  size_t n_edges;
+  size_t n_vertex;
+  size_t (*hash)(const char* str, size_t size);
+};						
+
+UW_Graph* init_uw_graph(size_t (*hash)(const char* str, size_t size));
+W_Graph* init_w_graph(size_t (*hash)(const char* str, size_t size));
+UW_Graph* complete_graph(size_t (*hash)(const char* str, size_t size), int n);
+bool add_vertex(UW_Graph* g, W_Graph* g2, const char* label, size_t label_size);
+bool add_edge(UW_Graph* g, W_Graph* g2, char* src, size_t size_src, char* dst, size_t size_dst, int dist);
+//bool cut_edge(UW_Graph* g, W_Graph* g2, char* src, char* dst);
+void print_graph(UW_Graph* g, W_Graph* g2);
+ArrayList* dfs(UW_Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
+ArrayList* bfs(UW_Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
 void print_traversal(ArrayList* result);
 void deinit_traversal(ArrayList* result);
-void dijsktra(Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
-void find_independent_sets(Graph* g, char* src, char* dst);
-int chromatic_number(Graph* g);
-void minimun_expansion_tree(Graph* g);
-void deinit_graph(Graph* g);
+ArrayList* dijsktra(W_Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
+void find_independent_sets(UW_Graph* g, W_Graph* g2, char* src, char* dst);
+int chromatic_number(UW_Graph* g, W_Graph* g2);
+void minimun_expansion_tree(UW_Graph* g, W_Graph* g2);
+void deinit_graph(UW_Graph* g, W_Graph* g2);
 
 #endif

@@ -84,6 +84,7 @@ void shift_up(Priority_Queue* Q, int index);
 void shift_down(Priority_Queue* Q, int index);
 void p_queue_push(Priority_Queue* Q, void* data);
 void* p_queue_pop(Priority_Queue* Q);
+bool p_queue_empty(Priority_Queue* queue);
 void deinit_p_queue(Priority_Queue* list);
 
 // Stack functions
