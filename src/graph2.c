@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h> 
 #include <assert.h> 
+#include <limits.h>
 #include "graph.h"
 #include "utils/data_structures.h"
 
@@ -84,7 +85,7 @@ bool add_vertex(UW_Graph* g, W_Graph* g2, const char* label, size_t label_size)
   }
   char* str = malloc(label_size+1);
   memcpy(str, label, label_size+1);
-  Vertex v = {.label = str, .label_size = label_size, .degree = 0, .n_edges = 0, .color = 0};
+  Vertex v = {.label = str, .label_size = label_size, .degree = 0, .n_edges = 0, .color = 0, .dist = INT_MAX};
   v.edges = init_hashmap(false, 0, g2->hash);
   if (hashmap_put(g2->adj_matrix, (const void*) label, label_size, (void*) &v, sizeof(*label) * label_size, sizeof(Vertex))) {
     g2->n_vertex++;
@@ -225,16 +226,17 @@ ArrayList* dfs(UW_Graph* g, char* src, size_t size_src, char* dst, size_t size_d
 
 bool compare(Priority_Queue* Q, void* a_, void* b_) 
 {
-  if (b_ == NULL) return false;
-  Edge* a = (Edge*) a_;
-  Edge* b = (Edge*) b_;
-  if (a->length > b->length) return true;
+  if (b_ == NULL) return true;
+  Vertex* a = (Vertex*) a_;
+  Vertex* b = (Vertex*) b_;
+  if (a->dist > b->dist) return true;
   return false;
 }
 
 ArrayList* dijsktra(W_Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
 {
-  Priority_Queue* Q = init_p_queue(1, &compare);
+  Priority_Queue* Q = init_p_queue(10, &compare);
+  assert(Q !=NULL);
   Vertex* source = hashmap_get(g->adj_matrix, (const void*) src, size_src) != NULL
     ? (Vertex*) hashmap_get(g->adj_matrix, (const void*) src, size_src) 
     : NULL;
@@ -243,24 +245,19 @@ ArrayList* dijsktra(W_Graph* g, char* src, size_t size_src, char* dst, size_t si
     : NULL;
   if (source == NULL || dest == NULL) return NULL;
   source->parent = source;
-  Edge A = {
-    .vertex = source,
-    .length = 0,
-  };
-  p_queue_push(Q, (void*) &A);
+  source->dist = 0;
+  p_queue_push(Q, (void*) source);
   while (!p_queue_empty(Q)) {
-    Edge* actual = (Edge*) p_queue_pop(Q);
+    Vertex* actual = (Vertex*) p_queue_pop(Q);
     assert(actual != NULL);
-    Vertex* actual_vertex = actual->vertex; 
-    actual_vertex->visited = true;
-    for (Element* i = actual_vertex->edges->head; i != NULL; i = i->next) {
+    actual->visited = true;
+    for (Element* i = actual->edges->head; i != NULL; i = i->next) {
       if (((Edge*)i->value)->vertex->visited == true) continue;
-      ((Edge*)i->value)->length += actual->length;
-      p_queue_push(Q, (void*)((Edge*)i->value));
-      ((Edge*)i->value)->vertex->parent = actual_vertex;
-    }
-    if (dest->parent != NULL) {
-      break;
+      if (((Edge*)i->value)->vertex->dist > (actual->dist + ((Edge*)i->value)->length)) {
+	((Edge*)i->value)->vertex->dist = actual->dist + ((Edge*)i->value)->length;
+	((Edge*)i->value)->vertex->parent = actual;
+	p_queue_push(Q, ((void*)((Edge*)(i->value))->vertex));
+      }
     }
   }
   if (dest->parent == NULL) {
@@ -373,9 +370,9 @@ void print_graph(UW_Graph* g, W_Graph* g2) {
   printf("\n");
   for (Element* i = g2->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
     printf("{");
-    printf("{%s}", ((Vertex*)i->value)->label);
+    printf("{%s, %zu}", ((Vertex*)i->value)->label, ((Vertex*)i->value)->dist);
     for (Element* j = ((Vertex*)i->value)->edges->head;  j != NULL; j = j->next) {
-      printf(" %s", ((Edge*)j->value)->vertex->label);
+      printf(" (%s, %zu)", ((Edge*)j->value)->vertex->label, ((Edge*)j->value)->vertex->dist);
     }
     printf("}\n");
   }

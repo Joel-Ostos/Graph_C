@@ -89,10 +89,10 @@ int main(void) {
   add_vertex(NULL, wg, "3", 1);
   add_vertex(NULL, wg, "4", 1);
   add_vertex(NULL, wg, "5", 1);
-  add_edge(NULL, wg, "1", 1, "2", 1, 3);
   add_edge(NULL, wg, "1", 1, "3", 1, 10);
-  add_edge(NULL, wg, "4", 1, "2", 1, 9);
-  add_edge(NULL, wg, "4", 1, "3", 1, 11);
+  add_edge(NULL, wg, "1", 1, "2", 1, 3);
+  add_edge(NULL, wg, "4", 1, "2", 1, 20);
+  add_edge(NULL, wg, "4", 1, "3", 1, 1);
   add_edge(NULL, wg, "4", 1, "5", 1, 1);
   ArrayList* result = dijsktra(wg, "1", 1, "5", 1);
   print_graph(NULL, wg);
@@ -102,4 +102,33 @@ int main(void) {
     deinit_traversal(result);
   }
   printf("Chromatic Number Graph 4: %d",chromatic_number(NULL, wg));
+  W_Graph* wg_2 = init_w_graph(*hash_a);
+  add_vertex(NULL, wg_2, "1", 1);
+  add_vertex(NULL, wg_2, "2", 1);
+  add_vertex(NULL, wg_2, "3", 1);
+  add_vertex(NULL, wg_2, "4", 1);
+  add_vertex(NULL, wg_2, "5", 1);
+  add_vertex(NULL, wg_2, "6", 1);
+  add_vertex(NULL, wg_2, "7", 1);
+
+  add_edge(NULL, wg_2, "1", 1, "2", 1, 1);
+  add_edge(NULL, wg_2, "1", 1, "6", 1, 100);
+  add_edge(NULL, wg_2, "1", 1, "5", 1, 100);
+  add_edge(NULL, wg_2, "1", 1, "7", 1, 100);
+  add_edge(NULL, wg_2, "2", 1, "3", 1, 1);
+  add_edge(NULL, wg_2, "4", 1, "3", 1, 100);
+  add_edge(NULL, wg_2, "3", 1, "5", 1, 1);
+  add_edge(NULL, wg_2, "5", 1, "4", 1, 1);
+  add_edge(NULL, wg_2, "6", 1, "5", 1, 1);
+  add_edge(NULL, wg_2, "6", 1, "7", 1, 1);
+  add_edge(NULL, wg_2, "7", 1, "5", 1, 1);
+
+  result = dijsktra(wg_2, "1", 1, "4", 1);
+  print_graph(NULL, wg_2);
+  if (result != NULL) {
+    printf("Result Dijsktra Algorithm: ");
+    print_traversal(result);
+    deinit_traversal(result);
+  }
+  printf("Chromatic Number Graph 5: %d",chromatic_number(NULL, wg_2));
 }

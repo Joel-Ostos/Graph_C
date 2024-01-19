@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "data_structures.h"
+#include "../data_structures.h"
 
 bool compare(Priority_Queue* Q, void* a_, void* b_) 
 {
@@ -39,5 +39,8 @@ int main(void)
   }
   for (void* i = p_queue_pop(Q); i != NULL; i = p_queue_pop(Q)) {
     printf("\nPop element: %d",*(int*)i);
+  }
+  if (p_queue_empty(Q)) {
+    printf("Empty");
   }
 }

@@ -20,6 +20,7 @@ struct vertex {
   int color;
   Vertex* parent;
   bool visited;
+  size_t dist;
 };						
 
 struct edge {
