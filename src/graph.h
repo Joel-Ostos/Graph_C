@@ -49,7 +49,7 @@ W_Graph* init_w_graph(size_t (*hash)(const char* str, size_t size));
 UW_Graph* complete_graph(size_t (*hash)(const char* str, size_t size), int n);
 bool add_vertex(UW_Graph* g, W_Graph* g2, const char* label, size_t label_size);
 bool add_edge(UW_Graph* g, W_Graph* g2, char* src, size_t size_src, char* dst, size_t size_dst, int dist);
-//bool cut_edge(UW_Graph* g, W_Graph* g2, char* src, char* dst);
+void cut_edge(UW_Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
 void print_graph(UW_Graph* g, W_Graph* g2);
 ArrayList* dfs(UW_Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);
 ArrayList* bfs(UW_Graph* g, char* src, size_t size_src, char* dst, size_t size_dst);

@@ -43,7 +43,6 @@ int main(void) {
   }
   print_graph(g, NULL);
   printf("Chromatic number graph 2: %d", chromatic_number(g, NULL));
-  deinit_graph(g, NULL);
 
   UW_Graph* k_3 = init_uw_graph(&hash_a);
   add_vertex(k_3, NULL,"1", 1);
@@ -76,12 +75,11 @@ int main(void) {
     deinit_traversal(arr_2);
   }
   printf("Chromatic number graph 2: %d", chromatic_number(k_3, NULL));
-  deinit_graph(k_3, NULL);
 
-  g = complete_graph(&hash_a, 100);
-  print_graph(g, NULL);
-  printf("Chromatic number graph 3: %d", chromatic_number(g, NULL));
-  deinit_graph(g, NULL);
+  //g = complete_graph(&hash_a, 100);
+  //print_graph(g, NULL);
+  //printf("Chromatic number graph 3: %d", chromatic_number(g, NULL));
+  //deinit_graph(g, NULL);
 
   W_Graph* wg = init_w_graph(*hash_a);
   add_vertex(NULL, wg, "1", 1);
@@ -131,4 +129,10 @@ int main(void) {
     deinit_traversal(result);
   }
   printf("Chromatic Number Graph 5: %d",chromatic_number(NULL, wg_2));
+
+  cut_edge(k_3, "1",1,"2",1);
+  print_graph(k_3, NULL);
+
+  deinit_graph(g, NULL);
+  deinit_graph(k_3, NULL);
 }

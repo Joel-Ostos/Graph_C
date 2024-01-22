@@ -88,7 +88,7 @@ void* hashmap_get(HashMap* map, const void* key, size_t size) {
     }
   }
   for (Element* i = map->head; i != NULL && i->key != NULL; i = i->next) {
-    if (i->k_size == size && memcmp(i->key, key, size) == 0) {
+    if (i->k_size == size && memcmp(i->next->key, key, i->next->k_size < size ? size: i->next->k_size) == 0) {
       return i->value;
     }
   }
@@ -98,15 +98,37 @@ void* hashmap_get(HashMap* map, const void* key, size_t size) {
 
 void hashmap_delete(HashMap* map, const void* key, size_t size)
 {
-  size_t index = map->hash_func(key, size) % map->capacity;
-  if (memcmp(map->elements[index].key, key, size) == 0) {
-    map->elements[index].key = NULL;
-    return;
-  }
-  for (Element* i = &map->elements[index]; i != NULL && i->key != NULL; i = i->next) {
-    if (memcmp(i->key, key, size) == 0) {
-      i->key = NULL;
+  if (memcmp(map->head->key, key, map->head->k_size < size ? size: map->head->k_size) == 0) {
+    if (map->head->next != NULL) {
+      Element* tmp = map->head;
+      map->head = map->head->next;
+      map->occupied--;
+      free((void*)tmp->key);
+      free(tmp->value);
+      tmp->key = NULL;
       return;
+    }
+  }
+  for (Element* i = map->head; i != NULL && i->key != NULL; i = i->next) {
+    if(i->next != NULL && memcmp(i->next->key, key, i->next->k_size < size ? size: i->next->k_size) == 0) {
+	Element* tmp = i->next;
+	if (i->next->next != NULL) {
+	printf("Pasa -> %s\n",(char*) key);
+	  i->next = i->next->next;
+	  map->occupied--;
+	  tmp->key = NULL;
+	  printf("i -> %s, i->next -> %s", (char*)i->key, (char*)i->next->key);
+	  free((void*)tmp->key);
+	  free(tmp->value);
+	  return;
+	}
+	map->tail = i;
+	i->next = NULL;
+	map->occupied--;
+	tmp->key = NULL;
+	free((void*)tmp->key);
+	free(tmp->value);
+	return;
     }
   }
 }

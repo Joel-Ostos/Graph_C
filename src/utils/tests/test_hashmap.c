@@ -1,4 +1,4 @@
-#include "data_structures.h"
+#include "../data_structures.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -25,6 +25,18 @@ int main(void) {
     char str[length];
     snprintf(str, length + 1, "%d", i );
     printf("%d %s\n", *(int*)hashmap_get(mimap, str, length), str);
+  }
+  hashmap_delete(mimap, "2", 1);
+  hashmap_get(mimap, "2", 1);
+  hashmap_delete(mimap, "0", 1);
+  hashmap_delete(mimap, "1", 1);
+  hashmap_get(mimap, "1", 1);
+  hashmap_delete(mimap, "91", 2);
+  int a = 1;
+  hashmap_put(mimap, "1", 1, (void*) &a, 1, sizeof(a));
+  hashmap_delete(mimap, "1", 1);
+  for (Element* i = mimap->head; i != NULL; i = i->next) {
+    printf("Element-> %d\n", *(int*)i->value);
   }
   deinit_hashmap(mimap);
 }

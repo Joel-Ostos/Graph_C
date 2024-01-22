@@ -46,23 +46,6 @@ UW_Graph* complete_graph(size_t (*hash)(const char* str, size_t size), int n) {
   }
   return g;
 }
-//UW_Graph* complete_graph(int n)
-//{
-//  UW_Graph* g = init_graph();
-//  for (int i = 0; i < n; i++) {
-//    int length = snprintf( NULL, 0, "%d", i );
-//    char* str = malloc( length + 1 );
-//    snprintf( str, length + 1, "%d", i );
-//    add_vertex(g, str, length);
-//    free(str);
-//  }
-//  for (element* i = g->adj_matrix->head; i != NULL; i = i->next) {
-//    for (element* j = i->next; j != NULL; j = j->next) {
-//      add_edge(g, i->value.label, i->size, j->value.label, j->size, 0);
-//    }
-//  }
-//  return g;
-//}
 
 bool add_vertex(UW_Graph* g, W_Graph* g2, const char* label, size_t label_size)
 {
@@ -140,8 +123,26 @@ bool add_edge(UW_Graph* g, W_Graph* g2, char* src, size_t size_src, char* dst, s
   return false;
 }
 
+void cut_edge(UW_Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
+{
+  Vertex* source = hashmap_get(g->adj_matrix, (const void*) src, size_src) != NULL
+    ? (Vertex*) hashmap_get(g->adj_matrix, (const void*) src, size_src) 
+    : NULL;
+  Vertex* dest = hashmap_get(g->adj_matrix, (const void*) dst, size_dst) != NULL
+    ? (Vertex*) hashmap_get(g->adj_matrix, (const void*) dst, size_dst) 
+    : NULL;
+  if (source == NULL || dest == NULL) return;
 
-//void cut_edge(UW_Graph* g, char* src, char* dst);
+  Edge* source_edge = hashmap_get(dest->edges, (const void*) src, size_src) != NULL
+    ? (Edge*) hashmap_get(dest->edges, (const void*) src, size_src) 
+    : NULL;
+  Edge* dest_edge = hashmap_get(source->edges, (const void*) dst, size_dst) != NULL
+    ? (Edge*) hashmap_get(source->edges, (const void*) dst, size_dst) 
+    : NULL;
+  if (source_edge == NULL || dest_edge == NULL) return;
+  hashmap_delete(source->edges, (const void*) dst, size_dst);
+  hashmap_delete(dest->edges, (const void*) src, size_src);
+}
 //void contract_edge(UW_Graph* g, char* src, char* dst);
 
 ArrayList* bfs(UW_Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
