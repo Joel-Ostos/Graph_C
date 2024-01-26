@@ -45,7 +45,7 @@ struct priority_queue {
   void** array;							
   size_t capacity;							
   size_t occupied;							
-  bool (*priority_function)(Priority_Queue* arr, void* a, void* b);
+  bool (*priority_function)(void* a, void* b);
 };
 
 struct stack {
@@ -78,7 +78,7 @@ void* queue_peek(Queue* queue);
 bool queue_empty(Queue* queue);
 void deinit_queue(Queue* queue);
 
-Priority_Queue* init_p_queue(size_t initial_size, bool (*priority_function)(Priority_Queue* Q, void* a, void* b));
+Priority_Queue* init_p_queue(size_t initial_size, bool (*priority_function)(void* a, void* b));
 void swap(Priority_Queue* Q, size_t a, size_t b);
 void shift_up(Priority_Queue* Q, int index);
 void shift_down(Priority_Queue* Q, int index);

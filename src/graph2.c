@@ -3,10 +3,44 @@
 #include <assert.h> 
 #include <limits.h>
 #include "graph.h"
+#include "raylib.h"
+#include <math.h>
 #include "utils/data_structures.h"
 
 #define INITIAL_SIZE 123
 #define RESIZE_FACTOR 2
+#define SCREEN_W 800
+#define SCREEN_H 800
+#define RADIUS 300
+#define BACKGROUND BLACK
+#define V_S 10
+
+const Color COLORS[24] = {
+  DARKGRAY,
+  YELLOW,
+  MAGENTA,
+  RED,
+  MAROON,
+  GREEN,
+  VIOLET,
+  LIME,
+  DARKGREEN,
+  BLUE,
+  BEIGE,
+  GRAY,
+  DARKBROWN,
+  DARKBLUE,
+  PURPLE,
+  DARKPURPLE,
+  BROWN,
+  ORANGE,
+  GOLD,
+  LIGHTGRAY,
+  PINK,
+  WHITE,
+  BLACK,
+  SKYBLUE,
+};
 
 // UW_Graph functions, ready, set go!
 UW_Graph* init_uw_graph(size_t (*hash)(const char* str, size_t size)) {
@@ -123,6 +157,10 @@ bool add_edge(UW_Graph* g, W_Graph* g2, char* src, size_t size_src, char* dst, s
   return false;
 }
 
+//Vertex* find_vertex(UW_Graph* g)
+//{
+//}
+
 void cut_edge(UW_Graph* g, char* src, size_t size_src, char* dst, size_t size_dst)
 {
   Vertex* source = hashmap_get(g->adj_matrix, (const void*) src, size_src) != NULL
@@ -225,7 +263,7 @@ ArrayList* dfs(UW_Graph* g, char* src, size_t size_src, char* dst, size_t size_d
   return arraylist;
 }
 
-bool compare(Priority_Queue* Q, void* a_, void* b_) 
+bool compare(void* a_, void* b_) 
 {
   if (b_ == NULL) return true;
   Vertex* a = (Vertex*) a_;
@@ -388,6 +426,85 @@ void print_traversal(ArrayList* result) {
   printf("}\n");
 }
 
+void graph_image(UW_Graph* g, W_Graph* g2, const char* name)
+{
+  Element* actual = g->adj_matrix->head;
+  Image image = GenImageColor(SCREEN_W, SCREEN_H, BACKGROUND);
+  assert(actual != NULL);
+  Vector2 center = {SCREEN_W/2, SCREEN_H/2};
+  for (size_t i = 0; i < g->n_vertex && actual != NULL; i++) {
+    float angle = i * 2 * PI / g->n_vertex;
+    ((Vertex*)actual->value)->pos.x = center.x + RADIUS * cos(angle);
+    ((Vertex*)actual->value)->pos.y = center.y + RADIUS * sin(angle);
+    actual = actual->next;
+  }
+  if (g == NULL) goto g_2;
+  for (Element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
+    for (Element* j = ((Vertex*)i->value)->edges->head;  j != NULL; j = j->next) {
+      Vector2 vec_s = ((Vertex*)i->value)->pos;
+      Vector2 vec_d = ((Edge*)j->value)->vertex->pos;
+      ImageDrawLineV(&image, vec_s, vec_d, WHITE);
+    }
+  }
+
+  for (Element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
+    if (((Vertex*)g->adj_matrix->head->value)->color == -1) {
+      ImageDrawCircle(&image, ((Vertex*)i->value)->pos.x, ((Vertex*)i->value)->pos.y, V_S, BLUE);
+      continue;
+    }
+    ImageDrawCircle(&image, ((Vertex*)i->value)->pos.x, ((Vertex*)i->value)->pos.y, V_S, COLORS[((Vertex*)i->value)->color]);
+  }
+  ExportImage(image, name);
+  UnloadImage(image);
+ g_2:
+  if (g2 == NULL) return;
+  for (Element* i = g2->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
+    printf("{%s, %zu}", ((Vertex*)i->value)->label, ((Vertex*)i->value)->dist);
+    for (Element* j = ((Vertex*)i->value)->edges->head;  j != NULL; j = j->next) {
+      printf(" (%s, %zu)", ((Edge*)j->value)->vertex->label, ((Edge*)j->value)->vertex->dist);
+    }
+  }
+}
+
+void traversal_image(UW_Graph* g, W_Graph* g2, ArrayList* traversal, const char* name)
+{
+  Element* actual = g->adj_matrix->head;
+  Image image = GenImageColor(SCREEN_W, SCREEN_H, BACKGROUND);
+  assert(actual != NULL);
+  Vector2 center = {SCREEN_W/2, SCREEN_H/2};
+  for (size_t i = 0; i < g->n_vertex && actual != NULL; i++) {
+    float angle = i * 2 * PI / g->n_vertex;
+    ((Vertex*)actual->value)->pos.x = center.x + RADIUS * cos(angle);
+    ((Vertex*)actual->value)->pos.y = center.y + RADIUS * sin(angle);
+    actual = actual->next;
+  }
+  if (g == NULL) goto g_2;
+  for (Element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
+    for (Element* j = ((Vertex*)i->value)->edges->head;  j != NULL; j = j->next) {
+	ImageDrawLineV(&image, ((Vertex*)i->value)->pos, ((Edge*)j->value)->vertex->pos, WHITE);
+    }
+  }
+  for (size_t i = 0; i < traversal->occupied-1; i++) {
+    ImageDrawLineV(&image, ((Vertex*)traversal->array[i])->pos, ((Vertex*)traversal->array[i+1])->pos, RED);
+  }
+  for (Element* i = g->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
+    if (((Vertex*)g->adj_matrix->head->value)->color == -1) {
+      ImageDrawCircle(&image, ((Vertex*)i->value)->pos.x, ((Vertex*)i->value)->pos.y, V_S, BLUE);
+      continue;
+    }
+    ImageDrawCircle(&image, ((Vertex*)i->value)->pos.x, ((Vertex*)i->value)->pos.y, V_S, COLORS[((Vertex*)i->value)->color]);
+  }
+  ExportImage(image, name);
+  UnloadImage(image);
+ g_2:
+  if (g2 == NULL) return;
+  for (Element* i = g2->adj_matrix->head; i != NULL && i->key != NULL; i = i->next) {
+    printf("{%s, %zu}", ((Vertex*)i->value)->label, ((Vertex*)i->value)->dist);
+    for (Element* j = ((Vertex*)i->value)->edges->head;  j != NULL; j = j->next) {
+      printf(" (%s, %zu)", ((Edge*)j->value)->vertex->label, ((Edge*)j->value)->vertex->dist);
+    }
+  }
+}
 void deinit_traversal(ArrayList* result) {
   deinit_array(result);
 }

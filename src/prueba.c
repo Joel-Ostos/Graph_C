@@ -33,7 +33,9 @@ int main(void) {
   print_graph(g, NULL);
   ArrayList* arr = bfs(g, "Colombia", strlen("Colombia"), "Chile", strlen("Chile"));
   if (arr != NULL) {
+    printf("BFS from Colombia to Chile\n");
     print_traversal(arr);
+    traversal_image(g, NULL, arr, "traversal_a.png");
     deinit_traversal(arr);
   }
   ArrayList* arr_2 = dfs(g, "Colombia", strlen("Colombia"), "Chile", strlen("Chile"));
@@ -43,6 +45,7 @@ int main(void) {
   }
   print_graph(g, NULL);
   printf("Chromatic number graph 2: %d", chromatic_number(g, NULL));
+  graph_image(g, NULL, "b.png");
 
   UW_Graph* k_3 = init_uw_graph(&hash_a);
   add_vertex(k_3, NULL,"1", 1);
@@ -135,4 +138,17 @@ int main(void) {
 
   deinit_graph(g, NULL);
   deinit_graph(k_3, NULL);
+
+  UW_Graph* last = complete_graph(&hash_a, 3);
+  graph_image(last, NULL, "a.png");
+  printf("Chromatic number graph 6: %d", chromatic_number(last, NULL));
+  graph_image(last, NULL, "c.png");
+
+  UW_Graph* k_5 = complete_graph(&hash_a, 5);
+  printf("Chromatic number graph 7: %d", chromatic_number(k_5, NULL));
+  graph_image(k_5, NULL, "d.png");
+
+  UW_Graph* k_10 = complete_graph(&hash_a, 10);
+  printf("Chromatic number graph 7: %d", chromatic_number(k_10, NULL));
+  graph_image(k_10, NULL, "e.png");
 }

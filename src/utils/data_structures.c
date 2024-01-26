@@ -251,7 +251,7 @@ void deinit_queue(Queue* queue) {
 
 // Priority Queue
 
-Priority_Queue* init_p_queue(size_t initial_size, bool (*priority_function)(Priority_Queue* Q, void* a, void* b))		
+Priority_Queue* init_p_queue(size_t initial_size, bool (*priority_function)(void* a, void* b))		
 {									
   void** arr = (void**)malloc(sizeof(void*)*initial_size);
   assert(arr != NULL);
@@ -274,7 +274,7 @@ void swap(Priority_Queue* Q, size_t a, size_t b)
 void shift_up(Priority_Queue* Q, int index)
 {
   int parent = floor((index-1)/2);
-  while (index != 0 && Q->priority_function(Q, Q->array[parent], Q->array[index])) {
+  while (index != 0 && Q->priority_function(Q->array[parent], Q->array[index])) {
     swap(Q, parent, index);
     index = parent;
     parent = floor((index-1)/2);
@@ -286,9 +286,9 @@ void shift_down(Priority_Queue* Q, int index)
   int a = (2*index)+1;
   int b = (2*index)+2;
   int max = index;
-  while ((a < (int)Q->occupied && Q->priority_function(Q, Q->array[max], Q->array[a])) ||
-	 (b < (int)Q->occupied && Q->priority_function(Q, Q->array[max], Q->array[b]))) {
-    if (b >= (int)Q->occupied || !Q->priority_function(Q, Q->array[a], Q->array[b])) {
+  while ((a < (int)Q->occupied && Q->priority_function(Q->array[max], Q->array[a])) ||
+	 (b < (int)Q->occupied && Q->priority_function(Q->array[max], Q->array[b]))) {
+    if (b >= (int)Q->occupied || !Q->priority_function(Q->array[a], Q->array[b])) {
       swap(Q, a, max);
       max = a;
     } else {
